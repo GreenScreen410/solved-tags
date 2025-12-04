@@ -164,6 +164,11 @@ MIT License
 - [Tabler Icons](https://tabler-icons.io) - SVG 아이콘
 - [Pretendard](https://github.com/orioncactus/pretendard) - 폰트
 
+### Contributors
+
+- [@oh040411](https://www.acmicpc.net/user/oh040411) - 다크모드 버그 제보
+- [@hibye1217](https://www.acmicpc.net/user/hibye1217) - 난이도 미제공 티어 버그 제보, 메타 태그 배치 아이디어 제공
+
 ---
 
 <p align="center">
