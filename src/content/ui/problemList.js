@@ -19,7 +19,10 @@ export function createProblemElement(problem) {
   const voteTierName = TIER_NAMES[problem.voteLevel] || 'Unrated';
   const voteTierColor = TIER_COLORS[problem.voteLevel] || '#2d2d2d';
 
-  const metaTagsHtml = [...problem.metaTags].map(tagKey => {
+  // META_TAGS 정의 순서대로 메타 태그 정렬
+  const orderedMetaTags = Object.keys(META_TAGS).filter(key => problem.metaTags.has(key));
+
+  const metaTagsHtml = orderedMetaTags.map(tagKey => {
     const info = META_TAGS[tagKey];
     if (!info) return '';
     return `<span class="problem-meta-badge" style="background-color: ${info.color}20; color: ${info.color}; border-color: ${info.color}">${info.svg} ${info.ko}</span>`;

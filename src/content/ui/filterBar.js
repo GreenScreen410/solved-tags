@@ -160,10 +160,10 @@ export function updateFilterBarUI(state) {
     });
 
     if (activeFilters.size > 0) {
-      statsRow.innerHTML = `<span>🔍 필터링: <strong>${filteredProblems.length}</strong>개 / 총 ${problemTags.size}개</span>`;
+      statsRow.innerHTML = `<span>필터링: <strong>${filteredProblems.length}</strong>개 / 총 ${problemTags.size}개</span>`;
       statsRow.style.display = 'block';
     } else {
-      statsRow.innerHTML = `<span>📊 총 <strong>${problemTags.size}</strong>개 문제 기여 · 메타 태그 <strong style="color: #17ce3a">${metaTagCount}</strong>개</span>`;
+      statsRow.innerHTML = `<span>총 <strong>${problemTags.size}</strong>개 문제 기여 · 메타 태그 <strong style="color: #17ce3a">${metaTagCount}</strong>개</span>`;
       statsRow.style.display = 'block';
     }
   }
