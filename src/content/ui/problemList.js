@@ -32,6 +32,11 @@ export function createProblemElement(problem) {
     `<a href="/problems/tags/${tag.key}" class="problem-tag">#${tag.name}</a>`
   ).join('');
 
+  // 코멘트가 있으면 표시
+  const commentHtml = problem.description
+    ? `<div class="problem-comment">${escapeHtml(problem.description)}</div>`
+    : '';
+
   li.innerHTML = `
     <div class="problem-content">
       <div class="problem-header">
@@ -43,10 +48,20 @@ export function createProblemElement(problem) {
         <img src="${TIER_IMG_URL}${problem.voteLevel}.svg" alt="${voteTierName}" class="tier-icon">
         <span class="tier-name" style="color: ${voteTierColor}">${voteTierName}</span>
       </div>
+      ${commentHtml}
       <div class="problem-meta-tags">${metaTagsHtml}</div>
       <div class="problem-tags">${tagsHtml}</div>
     </div>
   `;
 
   return li;
+}
+
+/**
+ * HTML 이스케이프 (XSS 방지)
+ */
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }

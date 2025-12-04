@@ -780,6 +780,23 @@
   color: #17ce3a;
 }
 
+/* 코멘트 스타일 */
+.problem-comment-icon {
+  font-size: 14px;
+  margin-left: 4px;
+}
+
+.problem-comment {
+  margin-top: 8px;
+  font-size: 15px;
+  color: #495057;
+  line-height: 1.6;
+}
+
+.problem-comment+.problem-meta-tags {
+  margin-top: 8px;
+}
+
 /* 다크 테마 지원 */
 @media (prefers-color-scheme: dark) {
 
@@ -934,6 +951,10 @@
 
   .problem-tag {
     background: #3d3d3d;
+    color: #adb5bd;
+  }
+
+  .problem-comment {
     color: #adb5bd;
   }
 
