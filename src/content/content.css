@@ -1,0 +1,884 @@
+/* Content Script CSS - solved.ac 메타 태그 표시 스타일 */
+
+/* Pretendard 폰트 */
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Thin.woff2') format('woff2');
+  font-weight: 100;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraLight.woff2') format('woff2');
+  font-weight: 200;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
+
+/* ===================================
+   인라인 필터 바 스타일 
+   =================================== */
+
+.solved-tags-bar {
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+  letter-spacing: -0.4px;
+}
+
+.solved-tags-bar-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.solved-tags-bar-load-btn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #17ce3a 0%, #0db52a 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.solved-tags-bar-load-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #15b834 0%, #0aa026 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(23, 206, 58, 0.3);
+}
+
+.solved-tags-bar-load-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.solved-tags-bar-cache {
+  font-size: 11px;
+  color: #868e96;
+}
+
+.solved-tags-bar-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e9ecef;
+}
+
+.solved-tags-bar-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.solved-tags-bar-tag:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+}
+
+.solved-tags-bar-tag.active {
+  background: var(--tag-color, #17ce3a);
+  background-color: color-mix(in srgb, var(--tag-color, #17ce3a) 15%, white);
+  border-color: var(--tag-color, #17ce3a);
+}
+
+.solved-tags-bar-tag .tag-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.solved-tags-bar-tag .tag-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.solved-tags-bar-tag .tag-name {
+  color: #495057;
+  font-weight: 500;
+}
+
+.solved-tags-bar-tag.active .tag-name {
+  color: var(--tag-color, #17ce3a);
+}
+
+.solved-tags-bar-tag .tag-count {
+  font-weight: 700;
+  font-size: 11px;
+  padding: 1px 6px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  color: var(--tag-color, #495057);
+}
+
+.solved-tags-bar-tag.active .tag-count {
+  background: var(--tag-color, #17ce3a);
+  color: white !important;
+}
+
+.solved-tags-bar-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #ff6b6b;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.solved-tags-bar-reset:hover {
+  background: #fa5252;
+  transform: translateY(-1px);
+}
+
+.solved-tags-bar-stats {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e9ecef;
+  font-size: 13px;
+  color: #495057;
+}
+
+.solved-tags-bar-stats strong {
+  font-weight: 700;
+}
+
+/* ===================================
+   플로팅 패널 스타일 (레거시)
+   =================================== */
+.solved-tags-panel {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 280px;
+  z-index: 999999;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+  letter-spacing: -0.4px;
+  overflow: hidden;
+}
+
+.solved-tags-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #17ce3a 0%, #0db52a 100%);
+  color: white;
+  cursor: grab;
+  user-select: none;
+}
+
+.solved-tags-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.solved-tags-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+.solved-tags-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.solved-tags-content {
+  padding: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.solved-tags-content.collapsed {
+  max-height: 0;
+  padding: 0 16px;
+  overflow: hidden;
+}
+
+/* 안내 박스 */
+.solved-tags-info-box {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #495057;
+  line-height: 1.5;
+}
+
+.solved-tags-info-box p {
+  margin: 4px 0;
+}
+
+.solved-tags-info-box p:first-child {
+  margin-top: 0;
+  color: #343a40;
+}
+
+/* 데이터 로드 버튼 */
+.solved-tags-load-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #17ce3a 0%, #0db52a 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.solved-tags-load-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #15b834 0%, #0aa026 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(23, 206, 58, 0.3);
+}
+
+.solved-tags-load-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* 서버 부하 경고 */
+.solved-tags-warning {
+  text-align: center;
+  font-size: 11px;
+  color: #e67700;
+  margin-bottom: 12px;
+  padding: 6px 8px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+}
+
+/* 캐시 정보 */
+.solved-tags-cache-info {
+  text-align: center;
+  font-size: 10px;
+  color: #adb5bd;
+  margin-top: -8px;
+  margin-bottom: 12px;
+}
+
+.solved-tags-hint {
+  font-size: 11px;
+  color: #868e96;
+  text-align: center;
+  margin-bottom: 12px;
+  padding: 6px;
+  background: #f1f3f4;
+  border-radius: 4px;
+}
+
+.solved-tags-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.solved-tags-stat-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.solved-tags-stat-item:hover {
+  background: #e9ecef;
+  transform: translateX(2px);
+}
+
+.solved-tags-stat-item.active {
+  background: #e8f5e9;
+  border-color: #17ce3a;
+}
+
+.stat-icon {
+  font-size: 16px;
+  margin-right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+.stat-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.stat-name {
+  flex: 1;
+  font-size: 13px;
+  color: #495057;
+}
+
+.stat-count {
+  font-weight: 700;
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+.stat-checkbox {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ced4da;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.solved-tags-stat-item.active .stat-checkbox {
+  background: #17ce3a;
+  border-color: #17ce3a;
+  position: relative;
+}
+
+.solved-tags-stat-item.active .stat-checkbox::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.solved-tags-reset {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-align: center;
+}
+
+.solved-tags-reset:hover {
+  background: #fa5252;
+}
+
+.solved-tags-total {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
+  font-size: 13px;
+  color: #868e96;
+}
+
+/* 문제 옆에 표시되는 메타 태그 뱃지 */
+.solved-tags-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.solved-tags-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+/* 로딩 인디케이터 */
+.solved-tags-loader {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+  letter-spacing: -0.4px;
+  font-size: 13px;
+  color: #495057;
+}
+
+.loader-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #e9ecef;
+  border-top-color: #17ce3a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 필터 결과 메시지 */
+.solved-tags-filter-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+  letter-spacing: -0.4px;
+  font-size: 13px;
+  color: #2e7d32;
+}
+
+.solved-tags-filter-message .filter-icon {
+  font-size: 18px;
+}
+
+.solved-tags-filter-message .filter-text {
+  flex: 1;
+}
+
+.solved-tags-filter-message .filter-text strong {
+  color: #1b5e20;
+}
+
+.solved-tags-filter-message .filter-clear-btn {
+  padding: 6px 12px;
+  background: #ffffff;
+  border: 1px solid #a5d6a7;
+  border-radius: 4px;
+  color: #2e7d32;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.solved-tags-filter-message .filter-clear-btn:hover {
+  background: #ff6b6b;
+  border-color: #ff6b6b;
+  color: white;
+}
+
+/* 필터 헤더 */
+.solved-tags-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 2px solid #4caf50;
+  border-radius: 12px;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+  letter-spacing: -0.4px;
+}
+
+.solved-tags-filter-header .filter-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #2e7d32;
+}
+
+.solved-tags-filter-header .filter-icon {
+  font-size: 20px;
+}
+
+.solved-tags-filter-header .filter-count {
+  padding: 4px 10px;
+  background: #4caf50;
+  color: white;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.solved-tags-filter-header .filter-clear-btn {
+  padding: 8px 16px;
+  background: #ff6b6b;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.solved-tags-filter-header .filter-clear-btn:hover {
+  background: #fa5252;
+  transform: scale(1.02);
+}
+
+/* 필터링된 문제 목록 스타일 */
+.solved-tags-problem-item {
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  transition: all 0.2s;
+  list-style: none;
+}
+
+.solved-tags-problem-item:hover {
+  border-color: #17ce3a;
+  box-shadow: 0 4px 12px rgba(23, 206, 58, 0.15);
+}
+
+.problem-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.problem-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.problem-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 600;
+}
+
+.problem-link:hover {
+  color: #17ce3a;
+}
+
+.tier-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.problem-id {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.problem-arrow {
+  color: #868e96;
+  margin: 0 4px;
+}
+
+.tier-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.problem-meta-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.problem-meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.problem-meta-badge svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.problem-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.problem-tag {
+  color: #495057;
+  text-decoration: none;
+  font-size: 13px;
+  padding: 2px 8px;
+  background: #f1f3f5;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.problem-tag:hover {
+  background: #e9ecef;
+  color: #17ce3a;
+}
+
+/* 다크 테마 지원 */
+@media (prefers-color-scheme: dark) {
+
+  /* 인라인 필터 바 다크 테마 */
+  .solved-tags-bar {
+    background: #1e1e1e;
+    border-color: #333;
+  }
+
+  .solved-tags-bar-load-btn {
+    background: linear-gradient(135deg, #17ce3a 0%, #0db52a 100%);
+  }
+
+  .solved-tags-bar-cache {
+    color: #6c757d;
+  }
+
+  .solved-tags-bar-filters {
+    border-top-color: #333;
+  }
+
+  .solved-tags-bar-tag {
+    background: #2d2d2d;
+  }
+
+  .solved-tags-bar-tag:hover {
+    background: #3d3d3d;
+  }
+
+  .solved-tags-bar-tag.active {
+    background-color: color-mix(in srgb, var(--tag-color, #17ce3a) 20%, #1e1e1e);
+  }
+
+  .solved-tags-bar-tag .tag-name {
+    color: #adb5bd;
+  }
+
+  .solved-tags-bar-tag .tag-count {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .solved-tags-bar-stats {
+    border-top-color: #333;
+    color: #adb5bd;
+  }
+
+  /* 플로팅 패널 다크 테마 (레거시) */
+  .solved-tags-panel {
+    background: #1e1e1e;
+    border-color: #333;
+  }
+
+  .solved-tags-info-box {
+    background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+    border-color: #444;
+    color: #adb5bd;
+  }
+
+  .solved-tags-info-box p:first-child {
+    color: #e0e0e0;
+  }
+
+  .solved-tags-cache-info {
+    background: #2d2d2d;
+    color: #868e96;
+  }
+
+  .solved-tags-hint {
+    background: #2d2d2d;
+    color: #adb5bd;
+  }
+
+  .solved-tags-stat-item {
+    background: #2d2d2d;
+  }
+
+  .solved-tags-stat-item:hover {
+    background: #3d3d3d;
+  }
+
+  .solved-tags-stat-item.active {
+    background: #1a3d1a;
+    border-color: #17ce3a;
+  }
+
+  .stat-name {
+    color: #adb5bd;
+  }
+
+  .stat-checkbox {
+    border-color: #555;
+  }
+
+  .solved-tags-total {
+    border-top-color: #333;
+    color: #868e96;
+  }
+
+  .solved-tags-loader {
+    background: #1e1e1e;
+    border-color: #333;
+    color: #adb5bd;
+  }
+
+  .loader-spinner {
+    border-color: #333;
+    border-top-color: #17ce3a;
+  }
+
+  .solved-tags-filter-header {
+    background: linear-gradient(135deg, #1a3d1a 0%, #2d4a2d 100%);
+    border-color: #4caf50;
+  }
+
+  .solved-tags-filter-header .filter-header-info {
+    color: #a5d6a7;
+  }
+
+  .solved-tags-problem-item {
+    background: #2d2d2d;
+    border-color: #444;
+  }
+
+  .solved-tags-problem-item:hover {
+    border-color: #17ce3a;
+    box-shadow: 0 4px 12px rgba(23, 206, 58, 0.2);
+  }
+
+  .problem-link {
+    color: #e0e0e0;
+  }
+
+  .problem-tag {
+    background: #3d3d3d;
+    color: #adb5bd;
+  }
+
+  .problem-tag:hover {
+    background: #4d4d4d;
+    color: #17ce3a;
+  }
+}

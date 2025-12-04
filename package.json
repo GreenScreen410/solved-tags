@@ -1,0 +1,19 @@
+{
+  "name": "solved-tags",
+  "version": "1.0.0",
+  "description": "solved.ac 기여 페이지에서 메타 태그를 표시합니다.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "build:firefox": "BROWSER=firefox vite build --config vite.config.js",
+    "build:all": "npm run build && npm run build:firefox",
+    "zip:chrome": "cd dist && zip -r ../solved-tags-chrome.zip .",
+    "zip:firefox": "cd dist-firefox && zip -r ../solved-tags-firefox.zip .",
+    "clean": "rm -rf dist dist-firefox"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "vite-plugin-static-copy": "^3.1.4"
+  }
+}

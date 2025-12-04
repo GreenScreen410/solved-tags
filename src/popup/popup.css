@@ -1,0 +1,226 @@
+/* Popup 스타일 - solved.tags */
+
+/* Pretendard 폰트 */
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Thin.woff2') format('woff2');
+  font-weight: 100;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraLight.woff2') format('woff2');
+  font-weight: 200;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 320px;
+  min-height: 200px;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+  letter-spacing: -0.4px;
+  font-size: 14px;
+  color: #333;
+  background: #ffffff;
+}
+
+.popup-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.popup-header {
+  padding: 16px;
+  background: linear-gradient(135deg, #17ce3a 0%, #0db52a 100%);
+  color: white;
+}
+
+.popup-header h1 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.popup-subtitle {
+  font-size: 12px;
+  opacity: 0.9;
+  margin-top: 4px;
+}
+
+.popup-content {
+  flex: 1;
+  padding: 16px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.setting-item label {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label-icon {
+  font-size: 16px;
+}
+
+.setting-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #17ce3a;
+}
+
+.setting-item input[type="text"] {
+  width: 120px;
+  padding: 6px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  letter-spacing: -0.4px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.setting-item input[type="text"]:focus {
+  border-color: #17ce3a;
+}
+
+.setting-item input[type="text"]::placeholder {
+  color: #adb5bd;
+}
+
+.info-box {
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.info-box p {
+  margin-bottom: 4px;
+}
+
+.info-box p:last-child {
+  margin-bottom: 0;
+}
+
+.info-url {
+  color: #2e7d32;
+  font-size: 11px;
+}
+
+.meta-tags-preview {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.preview-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+  background: color-mix(in srgb, var(--tag-color) 15%, white);
+  color: var(--tag-color);
+  border: 1px solid var(--tag-color);
+}
+
+.tag-preview svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.popup-footer {
+  padding: 12px 16px;
+  text-align: center;
+  border-top: 1px solid #e0e0e0;
+  color: #888;
+  font-size: 11px;
+}
