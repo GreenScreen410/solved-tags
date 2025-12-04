@@ -1,5 +1,5 @@
 // 캐시 관리 함수들
-import { CACHE_KEY_PREFIX, CACHE_EXPIRY_HOURS } from '../shared/constants.js';
+import { CACHE_KEY_PREFIX } from '../shared/constants.js';
 
 /**
  * 캐시에서 데이터 로드
@@ -13,13 +13,6 @@ export function loadFromCache(handle) {
     if (!cached) return null;
 
     const data = JSON.parse(cached);
-    const now = Date.now();
-    const expiry = data.timestamp + (CACHE_EXPIRY_HOURS * 60 * 60 * 1000);
-
-    if (now > expiry) {
-      localStorage.removeItem(cacheKey);
-      return null;
-    }
 
     console.log(`[solved.tags] 캐시에서 데이터 로드 (${new Date(data.timestamp).toLocaleString()})`);
     return data;

@@ -1,5 +1,4 @@
 // API 관련 함수들
-import { CACHE_KEY_PREFIX, CACHE_EXPIRY_HOURS } from '../shared/constants.js';
 
 /**
  * API에서 모든 투표 데이터 가져오기

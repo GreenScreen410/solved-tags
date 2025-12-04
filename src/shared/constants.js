@@ -63,4 +63,3 @@ export const TIER_COLORS = {
 
 // 캐시 설정
 export const CACHE_KEY_PREFIX = 'solved_tags_cache_';
-export const CACHE_EXPIRY_HOURS = 24;
