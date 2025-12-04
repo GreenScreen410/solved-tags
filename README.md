@@ -9,11 +9,12 @@
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#development">Development</a> •
-  <a href="#license">License</a>
+  <a href="#-features">Features</a> •
+  <a href="#-installation">Installation</a> •
+  <a href="#-usage">Usage</a> •
+  <a href="#-development">Development</a> •
+  <a href="#-license">License</a>
+  <a href="#-Credits">Credits</a>
 </p>
 
 ---
