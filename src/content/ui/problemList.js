@@ -1,5 +1,6 @@
 // 문제 목록 렌더링 관련 함수들
 import { META_TAGS, TIER_IMG_URL, TIER_NAMES, TIER_COLORS } from '../../shared/constants.js';
+import { isDarkMode } from '../theme.js';
 
 /**
  * 문제 요소 생성
@@ -9,6 +10,11 @@ import { META_TAGS, TIER_IMG_URL, TIER_NAMES, TIER_COLORS } from '../../shared/c
 export function createProblemElement(problem) {
   const li = document.createElement('li');
   li.className = 'solved-tags-problem-item';
+
+  // 생성 시점에 다크 모드 클래스 적용
+  if (isDarkMode()) {
+    li.classList.add('solved-tags-dark');
+  }
 
   // 문제의 현재 난이도
   const problemLevel = problem.level ?? 0;

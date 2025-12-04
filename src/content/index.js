@@ -3,6 +3,7 @@ import { fetchAllVotes, aggregateMetaTags } from './api.js';
 import { loadFromCache, saveToCache, restoreFromCache } from './cache.js';
 import { createFilterBar, insertFilterBar, updateFilterBarUI, updateFilterBarLoadButton, showFilterBarLoading } from './ui/filterBar.js';
 import { FilterManager } from './ui/filter.js';
+import { startThemeDetection } from './theme.js';
 
 console.log('[solved.tags] Content script loaded');
 
@@ -214,6 +215,9 @@ class SolvedTagsApp {
       onSortChange: (sortOption) => this.handleSortChange(sortOption)
     });
     insertFilterBar(filterBar);
+
+    // 테마 감지 시작
+    startThemeDetection();
 
     // 캐시된 데이터 있으면 자동 로드
     const cached = loadFromCache(this.currentHandle);

@@ -222,7 +222,7 @@
 .solved-tags-bar-sort {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-left: auto;
   flex-shrink: 0;
 }
@@ -233,28 +233,88 @@
   font-weight: 500;
 }
 
-.solved-tags-sort-select {
-  padding: 5px 10px;
+/* 커스텀 드롭다운 */
+.solved-tags-dropdown {
+  position: relative;
+}
+
+.solved-tags-dropdown-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
   font-size: 12px;
   font-weight: 500;
   color: #495057;
   background: #f8f9fa;
   border: 1px solid #dee2e6;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   font-family: inherit;
 }
 
-.solved-tags-sort-select:hover {
+.solved-tags-dropdown-btn:hover {
   background: #e9ecef;
   border-color: #ced4da;
 }
 
-.solved-tags-sort-select:focus {
-  outline: none;
-  border-color: #17ce3a;
-  box-shadow: 0 0 0 2px rgba(23, 206, 58, 0.15);
+.solved-tags-dropdown-btn .dropdown-arrow {
+  transition: transform 0.2s ease;
+  color: #868e96;
+}
+
+.solved-tags-dropdown.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.solved-tags-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 140px;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.2s ease;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.solved-tags-dropdown.open .solved-tags-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.solved-tags-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #495057;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.solved-tags-dropdown-item:hover {
+  background: #f8f9fa;
+  color: #17ce3a;
+}
+
+.solved-tags-dropdown-item.active {
+  color: #17ce3a;
+  font-weight: 600;
+  background: rgba(23, 206, 58, 0.08);
 }
 
 /* ===================================
@@ -797,7 +857,7 @@
   margin-top: 8px;
 }
 
-/* 다크 테마 지원 */
+/* 다크 테마 지원 - 시스템 설정 */
 @media (prefers-color-scheme: dark) {
 
   /* 인라인 필터 바 다크 테마 */
@@ -962,4 +1022,111 @@
     background: #4d4d4d;
     color: #17ce3a;
   }
+}
+
+/* 다크 테마 지원 - solved.ac 사이트 테마 설정 (어둡게/암전) */
+.solved-tags-dark.solved-tags-bar {
+  background: #1e1e1e;
+  border-color: #333;
+}
+
+.solved-tags-dark .solved-tags-bar-cache {
+  color: #6c757d;
+}
+
+.solved-tags-dark .solved-tags-bar-filters {
+  border-top-color: #333;
+}
+
+.solved-tags-dark .solved-tags-bar-tag {
+  background: #2d2d2d;
+}
+
+.solved-tags-dark .solved-tags-bar-tag:hover {
+  background: #3d3d3d;
+}
+
+.solved-tags-dark .solved-tags-bar-tag.active {
+  background-color: color-mix(in srgb, var(--tag-color, #17ce3a) 20%, #1e1e1e);
+}
+
+.solved-tags-dark .solved-tags-bar-tag .tag-name {
+  color: #adb5bd;
+}
+
+.solved-tags-dark .solved-tags-bar-tag .tag-count {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.solved-tags-dark .solved-tags-bar-stats {
+  border-top-color: #333;
+  color: #adb5bd;
+}
+
+.solved-tags-dark .solved-tags-bar-sort .sort-label {
+  color: #6c757d;
+}
+
+/* 다크모드 커스텀 드롭다운 */
+.solved-tags-dark .solved-tags-dropdown-btn {
+  background: #2d2d2d;
+  border-color: #444;
+  color: #adb5bd;
+}
+
+.solved-tags-dark .solved-tags-dropdown-btn:hover {
+  background: #3d3d3d;
+  border-color: #555;
+}
+
+.solved-tags-dark .solved-tags-dropdown-btn .dropdown-arrow {
+  color: #6c757d;
+}
+
+.solved-tags-dark .solved-tags-dropdown-menu {
+  background: #2d2d2d;
+  border-color: #444;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.solved-tags-dark .solved-tags-dropdown-item {
+  color: #adb5bd;
+}
+
+.solved-tags-dark .solved-tags-dropdown-item:hover {
+  background: #3d3d3d;
+  color: #17ce3a;
+}
+
+.solved-tags-dark .solved-tags-dropdown-item.active {
+  color: #17ce3a;
+  background: rgba(23, 206, 58, 0.15);
+}
+
+.solved-tags-problem-item.solved-tags-dark {
+  background: #2d2d2d;
+  border-color: #444;
+}
+
+.solved-tags-problem-item.solved-tags-dark:hover {
+  border-color: #17ce3a;
+  box-shadow: 0 4px 12px rgba(23, 206, 58, 0.2);
+}
+
+.solved-tags-problem-item.solved-tags-dark .problem-link {
+  color: #e0e0e0;
+}
+
+.solved-tags-problem-item.solved-tags-dark .problem-tag {
+  background: #3d3d3d;
+  color: #adb5bd;
+}
+
+.solved-tags-problem-item.solved-tags-dark .problem-tag:hover {
+  background: #4d4d4d;
+  color: #17ce3a;
+}
+
+.solved-tags-problem-item.solved-tags-dark .problem-comment {
+  color: #adb5bd;
 }

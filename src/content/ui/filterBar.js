@@ -63,19 +63,64 @@ export function createFilterBar({ onLoadData, onFilterChange, onClearFilters, on
   sortLabel.textContent = '정렬:';
   sortContainer.appendChild(sortLabel);
 
-  const sortSelect = document.createElement('select');
-  sortSelect.id = 'solved-tags-sort-select';
-  sortSelect.className = 'solved-tags-sort-select';
+  // 커스텀 드롭다운
+  const dropdown = document.createElement('div');
+  dropdown.className = 'solved-tags-dropdown';
+
+  const dropdownBtn = document.createElement('button');
+  dropdownBtn.type = 'button';
+  dropdownBtn.className = 'solved-tags-dropdown-btn';
+  dropdownBtn.innerHTML = `
+    <span class="dropdown-text">${SORT_LABELS[SORT_OPTIONS.ORDER]}</span>
+    <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+  `;
+
+  const dropdownMenu = document.createElement('div');
+  dropdownMenu.className = 'solved-tags-dropdown-menu';
 
   Object.entries(SORT_LABELS).forEach(([value, label]) => {
-    const option = document.createElement('option');
-    option.value = value;
-    option.textContent = label;
-    sortSelect.appendChild(option);
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'solved-tags-dropdown-item';
+    item.dataset.value = value;
+    item.textContent = label;
+    if (value === SORT_OPTIONS.ORDER) item.classList.add('active');
+    item.addEventListener('click', () => {
+      dropdownBtn.querySelector('.dropdown-text').textContent = label;
+      dropdownMenu.querySelectorAll('.solved-tags-dropdown-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      dropdown.classList.remove('open');
+      onSortChange(value);
+    });
+    dropdownMenu.appendChild(item);
   });
 
-  sortSelect.addEventListener('change', (e) => onSortChange(e.target.value));
-  sortContainer.appendChild(sortSelect);
+  dropdownBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+  });
+
+  // 외부 클릭 시 닫기 (드롭다운 자체에 등록)
+  dropdown.addEventListener('focusout', (e) => {
+    if (!dropdown.contains(e.relatedTarget)) {
+      dropdown.classList.remove('open');
+    }
+  });
+
+  // 문서 클릭 시 닫기 (once 옵션으로 회피)
+  dropdownBtn.addEventListener('click', () => {
+    const closeHandler = (e) => {
+      if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
+        document.removeEventListener('click', closeHandler);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeHandler), 0);
+  });
+
+  dropdown.appendChild(dropdownBtn);
+  dropdown.appendChild(dropdownMenu);
+  sortContainer.appendChild(dropdown);
   topRow.appendChild(sortContainer);
 
   bar.appendChild(topRow);
