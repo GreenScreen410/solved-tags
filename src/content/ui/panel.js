@@ -197,7 +197,7 @@ export function updateLoadButton(timestamp) {
 
   if (loadBtn) {
     loadBtn.disabled = false;
-    loadBtn.innerHTML = '🔄 데이터 갱신';
+    loadBtn.innerHTML = '데이터 갱신';
     loadBtn.dataset.isRefresh = 'true';
   }
 

@@ -82,6 +82,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .solved-tags-bar-load-btn {
@@ -215,6 +216,45 @@
 
 .solved-tags-bar-stats strong {
   font-weight: 700;
+}
+
+/* 정렬 드롭다운 */
+.solved-tags-bar-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.solved-tags-bar-sort .sort-label {
+  font-size: 12px;
+  color: #868e96;
+  font-weight: 500;
+}
+
+.solved-tags-sort-select {
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #495057;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.solved-tags-sort-select:hover {
+  background: #e9ecef;
+  border-color: #ced4da;
+}
+
+.solved-tags-sort-select:focus {
+  outline: none;
+  border-color: #17ce3a;
+  box-shadow: 0 0 0 2px rgba(23, 206, 58, 0.15);
 }
 
 /* ===================================
@@ -784,6 +824,26 @@
   .solved-tags-bar-stats {
     border-top-color: #333;
     color: #adb5bd;
+  }
+
+  /* 정렬 드롭다운 다크 테마 */
+  .solved-tags-bar-sort .sort-label {
+    color: #6c757d;
+  }
+
+  .solved-tags-sort-select {
+    background: #2d2d2d;
+    border-color: #444;
+    color: #adb5bd;
+  }
+
+  .solved-tags-sort-select:hover {
+    background: #3d3d3d;
+    border-color: #555;
+  }
+
+  .solved-tags-sort-select:focus {
+    border-color: #17ce3a;
   }
 
   /* 플로팅 패널 다크 테마 (레거시) */

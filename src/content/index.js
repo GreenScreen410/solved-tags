@@ -152,6 +152,18 @@ class SolvedTagsApp {
   }
 
   /**
+   * 정렬 기준 변경 처리
+   */
+  handleSortChange(sortOption) {
+    this.filterManager.setSortBy(sortOption);
+
+    // 필터가 활성화된 상태에서만 목록 다시 렌더링
+    if (!this.filterManager.isEmpty()) {
+      this.filterManager.renderFilteredList(this.problemTags, () => this.handleClearFilters());
+    }
+  }
+
+  /**
    * UI 업데이트
    */
   updateUI() {
@@ -198,7 +210,8 @@ class SolvedTagsApp {
     const filterBar = createFilterBar({
       onLoadData: (forceRefresh) => this.loadData(forceRefresh),
       onFilterChange: (tagKey) => this.handleFilterChange(tagKey),
-      onClearFilters: () => this.handleClearFilters()
+      onClearFilters: () => this.handleClearFilters(),
+      onSortChange: (sortOption) => this.handleSortChange(sortOption)
     });
     insertFilterBar(filterBar);
 

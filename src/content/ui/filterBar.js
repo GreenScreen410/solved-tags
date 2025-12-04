@@ -1,5 +1,15 @@
 // 인라인 필터 바 UI (페이지 내 삽입)
 import { META_TAGS } from '../../shared/constants.js';
+import { SORT_OPTIONS } from './filter.js';
+
+// 정렬 옵션 레이블
+const SORT_LABELS = {
+  [SORT_OPTIONS.ORDER]: '기여 순서',
+  [SORT_OPTIONS.PROBLEM_ID_ASC]: '번호 오름차순',
+  [SORT_OPTIONS.PROBLEM_ID_DESC]: '번호 내림차순',
+  [SORT_OPTIONS.LEVEL_ASC]: '난이도 낮은 순',
+  [SORT_OPTIONS.LEVEL_DESC]: '난이도 높은 순'
+};
 
 /**
  * 필터 바 생성 (페이지 내 삽입)
@@ -7,9 +17,10 @@ import { META_TAGS } from '../../shared/constants.js';
  * @param {Function} options.onLoadData - 데이터 로드 콜백
  * @param {Function} options.onFilterChange - 필터 변경 콜백
  * @param {Function} options.onClearFilters - 필터 초기화 콜백
+ * @param {Function} options.onSortChange - 정렬 변경 콜백
  * @returns {HTMLElement} 필터 바 요소
  */
-export function createFilterBar({ onLoadData, onFilterChange, onClearFilters }) {
+export function createFilterBar({ onLoadData, onFilterChange, onClearFilters, onSortChange }) {
   const existingBar = document.getElementById('solved-tags-bar');
   if (existingBar) existingBar.remove();
 
@@ -24,7 +35,7 @@ export function createFilterBar({ onLoadData, onFilterChange, onClearFilters }) 
   const loadBtn = document.createElement('button');
   loadBtn.id = 'solved-tags-load-btn';
   loadBtn.className = 'solved-tags-bar-load-btn';
-  loadBtn.innerHTML = '📊 메타 태그 불러오기';
+  loadBtn.innerHTML = '메타 태그 불러오기';
   loadBtn.dataset.isRefresh = 'false';
   loadBtn.addEventListener('click', () => {
     if (loadBtn.dataset.isRefresh === 'true') {
@@ -40,6 +51,32 @@ export function createFilterBar({ onLoadData, onFilterChange, onClearFilters }) 
   cacheInfo.id = 'solved-tags-cache-info';
   cacheInfo.className = 'solved-tags-bar-cache';
   topRow.appendChild(cacheInfo);
+
+  // 정렬 드롭다운 (상단 우측)
+  const sortContainer = document.createElement('div');
+  sortContainer.id = 'solved-tags-sort-container';
+  sortContainer.className = 'solved-tags-bar-sort';
+  sortContainer.style.display = 'none';
+
+  const sortLabel = document.createElement('span');
+  sortLabel.className = 'sort-label';
+  sortLabel.textContent = '정렬:';
+  sortContainer.appendChild(sortLabel);
+
+  const sortSelect = document.createElement('select');
+  sortSelect.id = 'solved-tags-sort-select';
+  sortSelect.className = 'solved-tags-sort-select';
+
+  Object.entries(SORT_LABELS).forEach(([value, label]) => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    sortSelect.appendChild(option);
+  });
+
+  sortSelect.addEventListener('change', (e) => onSortChange(e.target.value));
+  sortContainer.appendChild(sortSelect);
+  topRow.appendChild(sortContainer);
 
   bar.appendChild(topRow);
 
@@ -129,12 +166,18 @@ export function updateFilterBarUI(state) {
   const filterRow = document.getElementById('solved-tags-filter-row');
   const statsRow = document.getElementById('solved-tags-stats-row');
   const resetBtn = document.getElementById('solved-tags-reset-btn');
+  const sortContainer = document.getElementById('solved-tags-sort-container');
 
   if (!isDataLoaded) return;
 
   // 필터 행 표시
   if (filterRow) {
     filterRow.style.display = 'flex';
+  }
+
+  // 정렬 드롭다운 표시
+  if (sortContainer) {
+    sortContainer.style.display = 'flex';
   }
 
   // 필터 상태 업데이트
@@ -188,7 +231,7 @@ export function updateFilterBarLoadButton(timestamp) {
 
   if (loadBtn) {
     loadBtn.disabled = false;
-    loadBtn.innerHTML = '🔄 갱신';
+    loadBtn.innerHTML = '갱신';
     loadBtn.dataset.isRefresh = 'true';
   }
 

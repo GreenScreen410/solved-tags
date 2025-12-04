@@ -48,6 +48,7 @@ export async function fetchAllVotes(handle) {
  */
 export function aggregateMetaTags(votes) {
   const problemTagsMap = new Map();
+  let orderIndex = 0;
 
   votes.forEach(vote => {
     const problemId = vote.problemId;
@@ -60,7 +61,8 @@ export function aggregateMetaTags(votes) {
         voteLevel: vote.level,           // 사용자가 투표한(기여한) 난이도
         metaTags: new Set(),
         allTags: [],
-        description: vote.comment || ''
+        description: vote.comment || '',
+        order: orderIndex++              // 기여 순서 (API 응답 순서)
       });
     }
 

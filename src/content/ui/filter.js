@@ -4,11 +4,29 @@ import { createProblemElement } from './problemList.js';
 /**
  * 필터 매니저 클래스
  */
+// 정렬 기준 상수
+export const SORT_OPTIONS = {
+  ORDER: 'order',           // 기여 순서 (기본)
+  PROBLEM_ID_ASC: 'id_asc', // 문제 번호 오름차순
+  PROBLEM_ID_DESC: 'id_desc', // 문제 번호 내림차순
+  LEVEL_ASC: 'level_asc',   // 난이도 낮은 순
+  LEVEL_DESC: 'level_desc'  // 난이도 높은 순
+};
+
 export class FilterManager {
   constructor() {
     this.activeFilters = new Set();
     this.originalContent = null;
     this.isFilterMode = false;
+    this.sortBy = SORT_OPTIONS.ORDER; // 기본: 기여 순서
+  }
+
+  /**
+   * 정렬 기준 설정
+   * @param {string} sortOption - 정렬 기준
+   */
+  setSortBy(sortOption) {
+    this.sortBy = sortOption;
   }
 
   /**
@@ -55,8 +73,34 @@ export class FilterManager {
       }
     });
 
-    filtered.sort((a, b) => a.problemId - b.problemId);
+    this.sortProblems(filtered);
     return filtered;
+  }
+
+  /**
+   * 문제 목록 정렬
+   * @param {Array} problems - 정렬할 문제 배열
+   */
+  sortProblems(problems) {
+    switch (this.sortBy) {
+      case SORT_OPTIONS.ORDER:
+        problems.sort((a, b) => a.order - b.order);
+        break;
+      case SORT_OPTIONS.PROBLEM_ID_ASC:
+        problems.sort((a, b) => a.problemId - b.problemId);
+        break;
+      case SORT_OPTIONS.PROBLEM_ID_DESC:
+        problems.sort((a, b) => b.problemId - a.problemId);
+        break;
+      case SORT_OPTIONS.LEVEL_ASC:
+        problems.sort((a, b) => (a.level ?? 0) - (b.level ?? 0));
+        break;
+      case SORT_OPTIONS.LEVEL_DESC:
+        problems.sort((a, b) => (b.level ?? 0) - (a.level ?? 0));
+        break;
+      default:
+        problems.sort((a, b) => a.order - b.order);
+    }
   }
 
   /**
