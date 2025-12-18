@@ -42,13 +42,11 @@
 | 특정 언어에서 쉬운 | 특정 프로그래밍 언어에서 유리한 문제 |
 | 증명이 어려운 | 풀이의 정당성 증명이 어려운 문제 |
 
----
-
 ## 📦 Installation
 
 ### Chrome
 
-1. [Chrome Web Store](#)에서 설치 (심사 후 게시 예정)
+1. [Chrome Web Store](https://chromewebstore.google.com/detail/solvedtags/ofcomeknbplijbojjmhcpanandbpckek)에서 설치
 
 **또는 수동 설치:**
 
@@ -61,7 +59,7 @@
 
 ### Firefox
 
-1. [Firefox Add-ons](#)에서 설치 (심사 후 게시 예정)
+1. [Firefox Add-ons](https://addons.mozilla.org/ko/firefox/addon/solved-tags/)에서 설치
 
 **또는 수동 설치:**
 
