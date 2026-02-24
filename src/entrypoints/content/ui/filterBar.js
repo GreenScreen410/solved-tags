@@ -1,5 +1,5 @@
 // 인라인 필터 바 UI (페이지 내 삽입)
-import { META_TAGS } from '../../shared/constants.js';
+import { META_TAGS } from '@/utils/constants.js';
 import { SORT_OPTIONS } from './filter.js';
 
 // 정렬 옵션 레이블
@@ -167,39 +167,42 @@ export function createFilterBar({ onLoadData, onFilterChange, onClearFilters, on
 }
 
 /**
- * 페이지에 필터 바 삽입
+ * 페이지에 필터 바 삽입 — React hydration 완료 후 올바른 위치에 삽입
  */
 export function insertFilterBar(bar) {
-  // 이미 삽입되어 있으면 스킵
-  if (document.getElementById('solved-tags-bar')) {
-    return;
-  }
+  if (document.getElementById('solved-tags-bar')) return;
 
-  const waitForContainer = () => {
-    // 문제 목록 ul 직접 찾기
+  const tryInsert = () => {
+    // votes 페이지의 문제 목록(ul) 찾기
     const problemList = document.querySelector('ul[class*="css-"]');
     if (problemList && problemList.parentElement) {
-      // ul 바로 앞에 필터 바 삽입
       problemList.parentElement.insertBefore(bar, problemList);
       return true;
     }
     return false;
   };
 
-  // 바로 삽입 시도, 실패하면 재시도
-  if (!waitForContainer()) {
-    let attempts = 0;
-    const interval = setInterval(() => {
-      attempts++;
-      if (waitForContainer() || attempts > 20) {
-        clearInterval(interval);
-        if (attempts > 20) {
-          console.log('[solved.tags] 컨테이너를 찾지 못해 상단에 삽입합니다');
-          document.body.insertBefore(bar, document.body.firstChild);
-        }
-      }
-    }, 200);
-  }
+  // 즉시 시도
+  if (tryInsert()) return;
+
+  // React가 아직 렌더링 중이면 MutationObserver로 대기
+  let inserted = false;
+  const observer = new MutationObserver(() => {
+    if (!inserted && tryInsert()) {
+      inserted = true;
+      observer.disconnect();
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // 10초 후에도 찾지 못하면 observer 해제
+  setTimeout(() => {
+    observer.disconnect();
+    if (!inserted) {
+      document.body.appendChild(bar);
+    }
+  }, 10000);
 }
 
 /**

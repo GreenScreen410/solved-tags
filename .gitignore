@@ -2,8 +2,12 @@
 node_modules/
 
 # Build outputs
+.output/
 dist/
 dist-firefox/
+
+# WXT generated
+.wxt/
 
 # Zip files
 *.zip

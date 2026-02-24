@@ -19,9 +19,7 @@ export async function fetchAllVotes(handle) {
     votes.push(...firstData.items);
 
     const totalPages = Math.ceil(totalCount / 30);
-    console.log(`[solved.tags] 총 ${totalCount}개 투표, ${totalPages} 페이지`);
 
-    // 나머지 페이지들 병렬로 가져오기 (2페이지부터)
     const pagePromises = [];
     for (let p = 2; p <= totalPages; p++) {
       pagePromises.push(

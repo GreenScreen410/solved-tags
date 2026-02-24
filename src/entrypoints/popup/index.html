@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>solved.tags</title>
-  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
@@ -16,18 +16,11 @@
           <h1>solved.tags</h1>
           <p class="popup-subtitle">메타 태그 통계 뷰어</p>
         </div>
-        <img src="icons/icon128_white.png" alt="solved.tags" class="header-icon">
+        <img src="/icon128_white.png" alt="solved.tags" class="header-icon">
       </div>
     </header>
 
     <main class="popup-content">
-      <div class="setting-item handle-setting">
-        <label for="handle-input">
-          내 핸들
-        </label>
-        <input type="text" id="handle-input" placeholder="핸들 입력" spellcheck="false">
-      </div>
-
       <div class="setting-item">
         <label for="enable-toggle">
           태그 필터 표시
@@ -37,7 +30,8 @@
 
       <div class="info-box">
         <p>📍 사용 방법:</p>
-        <p>위에 내 핸들을 입력하면 해당 프로필의 '기여' 탭에서만<br>메타 태그 통계가 표시됩니다.</p>
+        <p>프로필의 '기여' 탭 방문 시<br>메타 태그 통계가 자동으로 표시됩니다.</p>
+        <p><code>solved.ac/profile/{핸들}/votes</code></p>
       </div>
 
       <div class="meta-tags-preview">
@@ -112,11 +106,11 @@
     </main>
 
     <footer class="popup-footer">
-      solved.tags v1.1.0
+      solved.tags v1.2.0
     </footer>
   </div>
 
-  <script src="popup.js"></script>
+  <script type="module" src="./main.js"></script>
 </body>
 
 </html>

@@ -1,5 +1,5 @@
 // 캐시 관리 함수들
-import { CACHE_KEY_PREFIX } from '../shared/constants.js';
+import { CACHE_KEY_PREFIX } from '@/utils/constants.js';
 
 /**
  * 캐시에서 데이터 로드
@@ -13,8 +13,6 @@ export function loadFromCache(handle) {
     if (!cached) return null;
 
     const data = JSON.parse(cached);
-
-    console.log(`[solved.tags] 캐시에서 데이터 로드 (${new Date(data.timestamp).toLocaleString()})`);
     return data;
   } catch (e) {
     console.error('[Solved Tags] 캐시 로드 실패:', e);
@@ -47,7 +45,6 @@ export function saveToCache(handle, votes, problemTagsData) {
       problemTags: problemTagsArray
     };
     localStorage.setItem(cacheKey, JSON.stringify(data));
-    console.log('[solved.tags] 캐시에 데이터 저장됨');
   } catch (e) {
     console.error('[Solved Tags] 캐시 저장 실패:', e);
   }

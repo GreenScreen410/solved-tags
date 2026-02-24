@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src/assets/icons/icon128.png" alt="solved.tags logo" width="128" height="128">
+  <img src="public/icon128.png" alt="solved.tags logo" width="128" height="128">
 </p>
 
 <h1 align="center">solved.tags</h1>
@@ -86,10 +86,12 @@
 
 ## 🛠 Development
 
+> 이 프로젝트는 [WXT](https://wxt.dev/) 프레임워크를 사용합니다.
+
 ### 요구 사항
 
 - Node.js 18+
-- npm 또는 yarn
+- npm
 
 ### 설치
 
@@ -110,13 +112,20 @@ npm run build:firefox
 
 # 둘 다 빌드
 npm run build:all
+
+# Zip 패키징
+npm run zip
+npm run zip:firefox
 ```
 
 ### 개발 모드
 
 ```bash
-# 파일 변경 감지 및 자동 빌드
+# Chrome 개발 서버 (HMR 지원)
 npm run dev
+
+# Firefox 개발 서버
+npm run dev:firefox
 ```
 
 ### 프로젝트 구조
@@ -124,30 +133,28 @@ npm run dev
 ```
 solved-tags/
 ├── src/
-│   ├── assets/
-│   │   └── icons/          # 확장 프로그램 아이콘
-│   ├── background/
-│   │   └── background.js   # 백그라운드 서비스 워커
-│   ├── content/
-│   │   ├── ui/
-│   │   │   ├── filterBar.js    # 필터 바 UI
-│   │   │   ├── filter.js       # 필터 로직
-│   │   │   └── problemList.js  # 문제 목록 렌더링
-│   │   ├── api.js          # solved.ac API 통신
-│   │   ├── cache.js        # 로컬 스토리지 캐싱
-│   │   ├── content.css     # 컨텐츠 스타일
-│   │   └── index.js        # 컨텐츠 스크립트 진입점
-│   ├── popup/
-│   │   ├── popup.html      # 팝업 UI
-│   │   ├── popup.css       # 팝업 스타일
-│   │   └── popup.js        # 팝업 로직
-│   ├── shared/
-│   │   └── constants.js    # 공유 상수 (메타 태그 등)
-│   ├── manifest.json       # Chrome 매니페스트 (MV3)
-│   └── manifest.firefox.json # Firefox 매니페스트 (MV2)
-├── dist/                   # Chrome 빌드 출력
-├── dist-firefox/           # Firefox 빌드 출력
-├── vite.config.js          # Vite 빌드 설정
+│   ├── entrypoints/
+│   │   ├── background.js      # 백그라운드 서비스 워커
+│   │   ├── content.js         # 컨텐츠 스크립트 진입점
+│   │   ├── content/
+│   │   │   ├── ui/
+│   │   │   │   ├── filterBar.js    # 필터 바 UI
+│   │   │   │   ├── filter.js       # 필터 로직
+│   │   │   │   ├── panel.js        # 플로팅 패널 UI
+│   │   │   │   └── problemList.js  # 문제 목록 렌더링
+│   │   │   ├── api.js         # solved.ac API 통신
+│   │   │   ├── cache.js       # 로컬 스토리지 캐싱
+│   │   │   ├── content.css    # 컨텐츠 스타일
+│   │   │   └── theme.js       # 테마 감지
+│   │   └── popup/
+│   │       ├── index.html     # 팝업 UI
+│   │       ├── style.css      # 팝업 스타일
+│   │       └── main.js        # 팝업 로직
+│   └── utils/
+│       └── constants.js       # 공유 상수 (메타 태그 등)
+├── public/                    # 정적 에셋 (아이콘 등)
+├── .output/                   # 빌드 출력 (WXT)
+├── wxt.config.ts              # WXT 설정 (매니페스트 포함)
 └── package.json
 ```
 
@@ -162,6 +169,7 @@ MIT License
 ## 🙏 Credits
 
 - [solved.ac](https://solved.ac) - 백준 난이도 및 태그 서비스
+- [WXT](https://wxt.dev/) - 브라우저 확장 프로그램 프레임워크
 - [Tabler Icons](https://tabler-icons.io) - SVG 아이콘
 - [Pretendard](https://github.com/orioncactus/pretendard) - 폰트
 

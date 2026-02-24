@@ -1,5 +1,5 @@
 // 문제 목록 렌더링 관련 함수들
-import { META_TAGS, TIER_IMG_URL, TIER_NAMES, TIER_COLORS } from '../../shared/constants.js';
+import { META_TAGS, TIER_IMG_URL, TIER_NAMES, TIER_COLORS } from '@/utils/constants.js';
 import { isDarkMode } from '../theme.js';
 
 /**
