@@ -4,7 +4,7 @@ export default defineConfig({
   srcDir: 'src',
   manifest: {
     name: 'solved.tags',
-    version: '1.2.0',
+    version: '1.3.0',
     description: 'solved.ac 기여 페이지에서 메타 태그를 표시합니다.',
     permissions: ['storage', 'activeTab'],
     host_permissions: ['https://solved.ac/*'],
