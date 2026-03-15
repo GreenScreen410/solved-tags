@@ -177,6 +177,7 @@ MIT License
 
 - [@oh040411](https://www.acmicpc.net/user/oh040411) - 다크모드 버그 제보
 - [@hibye1217](https://www.acmicpc.net/user/hibye1217) - 난이도 미제공 티어 버그 제보, 메타 태그 배치 아이디어 제공
+- [@js7777](https://www.acmicpc.net/user/js7777) - 난이도 미제공 티어 버그 제보, 페이지 이동 관련 버그 제보
 
 ---
 

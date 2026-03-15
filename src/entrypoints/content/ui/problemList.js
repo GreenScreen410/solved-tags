@@ -18,11 +18,11 @@ export function createProblemElement(problem) {
 
   // 문제의 현재 난이도
   const problemLevel = problem.level ?? 0;
-  const tierName = TIER_NAMES[problemLevel] || 'Unrated';
+  const tierName = problem.level == null ? '난이도 미제공' : (TIER_NAMES[problemLevel] || 'Unrated');
   const tierColor = TIER_COLORS[problemLevel] || '#2d2d2d';
 
   // 투표한(기여한) 난이도
-  const voteTierName = TIER_NAMES[problem.voteLevel] || 'Unrated';
+  const voteTierName = problem.voteLevel == null ? '난이도 미제공' : (TIER_NAMES[problem.voteLevel] || 'Unrated');
   const voteTierColor = TIER_COLORS[problem.voteLevel] || '#2d2d2d';
 
   // META_TAGS 정의 순서대로 메타 태그 정렬
@@ -43,15 +43,23 @@ export function createProblemElement(problem) {
     ? `<div class="problem-comment">${escapeHtml(problem.description)}</div>`
     : '';
 
+  // 티어 아이콘 HTML (null이면 아이콘 숨김)
+  const problemTierIcon = problem.level != null
+    ? `<img src="${TIER_IMG_URL}${problemLevel}.svg" alt="${tierName}" class="tier-icon">`
+    : '';
+  const voteTierIcon = problem.voteLevel != null
+    ? `<img src="${TIER_IMG_URL}${problem.voteLevel}.svg" alt="${voteTierName}" class="tier-icon">`
+    : '';
+
   li.innerHTML = `
     <div class="problem-content">
       <div class="problem-header">
         <a href="https://www.acmicpc.net/problem/${problem.problemId}" target="_blank" rel="noreferrer" class="problem-link">
-          <img src="${TIER_IMG_URL}${problemLevel}.svg" alt="${tierName}" class="tier-icon">
+          ${problemTierIcon}
           <span class="problem-id">${problem.problemId}</span>
         </a>
         <span class="problem-arrow">→</span>
-        <img src="${TIER_IMG_URL}${problem.voteLevel}.svg" alt="${voteTierName}" class="tier-icon">
+        ${voteTierIcon}
         <span class="tier-name" style="color: ${voteTierColor}">${voteTierName}</span>
       </div>
       ${commentHtml}

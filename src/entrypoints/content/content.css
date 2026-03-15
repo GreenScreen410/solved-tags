@@ -218,6 +218,23 @@
   font-weight: 700;
 }
 
+/* 내보내기 드롭다운 */
+.solved-tags-export-container {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.solved-tags-export-btn {
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.solved-tags-export-btn svg:first-child {
+  flex-shrink: 0;
+}
+
 /* 정렬 드롭다운 */
 .solved-tags-bar-sort {
   display: inline-flex;

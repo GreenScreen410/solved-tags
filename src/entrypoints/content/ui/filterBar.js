@@ -20,7 +20,7 @@ const SORT_LABELS = {
  * @param {Function} options.onSortChange - 정렬 변경 콜백
  * @returns {HTMLElement} 필터 바 요소
  */
-export function createFilterBar({ onLoadData, onFilterChange, onClearFilters, onSortChange }) {
+export function createFilterBar({ onLoadData, onFilterChange, onClearFilters, onSortChange, onExport }) {
   const existingBar = document.getElementById('solved-tags-bar');
   if (existingBar) existingBar.remove();
 
@@ -39,7 +39,7 @@ export function createFilterBar({ onLoadData, onFilterChange, onClearFilters, on
   loadBtn.dataset.isRefresh = 'false';
   loadBtn.addEventListener('click', () => {
     if (loadBtn.dataset.isRefresh === 'true') {
-      if (!confirm('데이터를 다시 불러오시겠습니까?\n⚠️ 과도한 갱신은 서버에 부하를 줄 수 있습니다.')) {
+      if (!confirm('데이터를 다시 불러오시겠습니까?\n⚠️ 과도한 갱신은 solved.ac 서버에 부하를 줄 수 있습니다.')) {
         return;
       }
     }
@@ -163,6 +163,62 @@ export function createFilterBar({ onLoadData, onFilterChange, onClearFilters, on
   statsRow.style.display = 'none';
   bar.appendChild(statsRow);
 
+  // 내보내기 드롭다운
+  const exportContainer = document.createElement('div');
+  exportContainer.id = 'solved-tags-export-container';
+  exportContainer.className = 'solved-tags-export-container';
+  exportContainer.style.display = 'none';
+
+  const exportDropdown = document.createElement('div');
+  exportDropdown.className = 'solved-tags-dropdown';
+
+  const exportDropdownBtn = document.createElement('button');
+  exportDropdownBtn.type = 'button';
+  exportDropdownBtn.className = 'solved-tags-dropdown-btn solved-tags-export-btn';
+  exportDropdownBtn.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M12 17v-6"/><path d="M9.5 14.5l2.5 2.5l2.5 -2.5"/></svg>
+    <span class="dropdown-text">내보내기</span>
+    <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+  `;
+
+  const exportMenu = document.createElement('div');
+  exportMenu.className = 'solved-tags-dropdown-menu';
+
+  [
+    { value: 'json', label: 'JSON으로 내보내기' },
+    { value: 'csv', label: 'CSV로 내보내기' }
+  ].forEach(({ value, label }) => {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'solved-tags-dropdown-item';
+    item.textContent = label;
+    item.addEventListener('click', () => {
+      exportDropdown.classList.remove('open');
+      onExport(value);
+    });
+    exportMenu.appendChild(item);
+  });
+
+  exportDropdownBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    exportDropdown.classList.toggle('open');
+  });
+
+  exportDropdownBtn.addEventListener('click', () => {
+    const closeHandler = (e) => {
+      if (!exportDropdown.contains(e.target)) {
+        exportDropdown.classList.remove('open');
+        document.removeEventListener('click', closeHandler);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeHandler), 0);
+  });
+
+  exportDropdown.appendChild(exportDropdownBtn);
+  exportDropdown.appendChild(exportMenu);
+  exportContainer.appendChild(exportDropdown);
+  bar.appendChild(exportContainer);
+
   return bar;
 }
 
@@ -170,39 +226,53 @@ export function createFilterBar({ onLoadData, onFilterChange, onClearFilters, on
  * 페이지에 필터 바 삽입 — React hydration 완료 후 올바른 위치에 삽입
  */
 export function insertFilterBar(bar) {
-  if (document.getElementById('solved-tags-bar')) return;
-
-  const tryInsert = () => {
-    // votes 페이지의 문제 목록(ul) 찾기
-    const problemList = document.querySelector('ul[class*="css-"]');
-    if (problemList && problemList.parentElement) {
-      problemList.parentElement.insertBefore(bar, problemList);
-      return true;
+  return new Promise((resolve, reject) => {
+    // 이미 삽입되어 있으면 즉시 완료
+    if (document.getElementById('solved-tags-bar')) {
+      resolve();
+      return;
     }
-    return false;
-  };
 
-  // 즉시 시도
-  if (tryInsert()) return;
+    const tryInsert = () => {
+      // 삽입 직전 중복 체크
+      if (document.getElementById('solved-tags-bar')) {
+        return true; // 이미 다른 경로로 삽입됨
+      }
+      // votes 페이지의 문제 목록(ul) 찾기
+      const problemList = document.querySelector('ul[class*="css-"]');
+      if (problemList && problemList.parentElement) {
+        problemList.parentElement.insertBefore(bar, problemList);
+        return true;
+      }
+      return false;
+    };
 
-  // React가 아직 렌더링 중이면 MutationObserver로 대기
-  let inserted = false;
-  const observer = new MutationObserver(() => {
-    if (!inserted && tryInsert()) {
-      inserted = true;
+    // 즉시 시도
+    if (tryInsert()) {
+      resolve();
+      return;
+    }
+
+    // React가 아직 렌더링 중이면 MutationObserver로 대기
+    let inserted = false;
+    const observer = new MutationObserver(() => {
+      if (!inserted && tryInsert()) {
+        inserted = true;
+        observer.disconnect();
+        resolve();
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // 10초 후에도 찾지 못하면 observer 해제
+    setTimeout(() => {
       observer.disconnect();
-    }
+      if (!inserted) {
+        reject(new Error('Filter bar insertion timed out'));
+      }
+    }, 10000);
   });
-
-  observer.observe(document.body, { childList: true, subtree: true });
-
-  // 10초 후에도 찾지 못하면 observer 해제
-  setTimeout(() => {
-    observer.disconnect();
-    if (!inserted) {
-      document.body.appendChild(bar);
-    }
-  }, 10000);
 }
 
 /**
@@ -215,8 +285,14 @@ export function updateFilterBarUI(state) {
   const statsRow = document.getElementById('solved-tags-stats-row');
   const resetBtn = document.getElementById('solved-tags-reset-btn');
   const sortContainer = document.getElementById('solved-tags-sort-container');
+  const exportBtn = document.getElementById('solved-tags-export-container');
 
   if (!isDataLoaded) return;
+
+  // 내보내기 버튼 표시
+  if (exportBtn) {
+    exportBtn.style.display = 'inline-flex';
+  }
 
   // 필터 행 표시
   if (filterRow) {
@@ -251,10 +327,10 @@ export function updateFilterBarUI(state) {
     });
 
     if (activeFilters.size > 0) {
-      statsRow.innerHTML = `<span>필터링: <strong>${filteredProblems.length}</strong>개 / 총 ${problemTags.size}개</span>`;
+      statsRow.innerHTML = `<span>필터링 결과: <strong>${filteredProblems.length}</strong>개 / 전체 기여 ${problemTags.size}개 중 메타 태그 <strong style="color: #17ce3a">${metaTagCount}</strong>개</span>`;
       statsRow.style.display = 'block';
     } else {
-      statsRow.innerHTML = `<span>총 <strong>${problemTags.size}</strong>개 문제 기여 · 메타 태그 <strong style="color: #17ce3a">${metaTagCount}</strong>개</span>`;
+      statsRow.innerHTML = `<span>전체 기여 <strong>${problemTags.size}</strong>개 · 메타 태그 포함 <strong style="color: #17ce3a">${metaTagCount}</strong>개</span>`;
       statsRow.style.display = 'block';
     }
   }

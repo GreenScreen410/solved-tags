@@ -121,10 +121,14 @@ export class FilterManager {
 
     this.isFilterMode = true;
 
+    // 페이지네이션 숨기기 (필터 모드에서는 전체 결과를 보여주므로 불필요)
+    const pagination = document.querySelector('div.css-18lc7iz');
+    if (pagination) pagination.style.display = 'none';
+
     // 컨테이너 내용만 교체 (필터 바는 컨테이너 밖에 있음)
     container.innerHTML = '';
 
-    // 문제 목록 렌더링
+    // 전체 필터 결과를 한 번에 렌더링
     filteredProblems.forEach(problem => {
       const li = createProblemElement(problem);
       container.appendChild(li);
@@ -140,6 +144,10 @@ export class FilterManager {
 
     container.innerHTML = this.originalContent;
     this.isFilterMode = false;
+
+    // 페이지네이션 복원
+    const pagination = document.querySelector('div.css-18lc7iz');
+    if (pagination) pagination.style.display = '';
   }
 
   /**

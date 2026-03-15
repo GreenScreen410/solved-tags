@@ -4,6 +4,7 @@ import { loadFromCache, saveToCache, restoreFromCache } from './content/cache.js
 import { createFilterBar, insertFilterBar, updateFilterBarUI, updateFilterBarLoadButton, showFilterBarLoading } from './content/ui/filterBar.js';
 import { FilterManager } from './content/ui/filter.js';
 import { startThemeDetection } from './content/theme.js';
+import { exportAsJSON, exportAsCSV } from '@/utils/export.js';
 import './content/content.css';
 
 export default defineContentScript({
@@ -47,6 +48,7 @@ export default defineContentScript({
         const bar = document.getElementById('solved-tags-bar');
         if (bar) bar.remove();
         this.filterManager.restoreOriginalPage();
+        this.filterManager.clear();
         this.isDataLoaded = false;
         this.currentHandle = null;
         this.isInitializing = false;
@@ -154,6 +156,21 @@ export default defineContentScript({
       }
 
       /**
+       * 데이터 내보내기 처리
+       */
+      handleExport(format) {
+        if (!this.isDataLoaded || this.problemTags.size === 0) {
+          alert('내보낼 데이터가 없습니다. 먼저 데이터를 불러와주세요.');
+          return;
+        }
+        if (format === 'csv') {
+          exportAsCSV(this.problemTags, this.currentHandle);
+        } else {
+          exportAsJSON(this.problemTags, this.currentHandle);
+        }
+      }
+
+      /**
        * UI 업데이트
        */
       updateUI() {
@@ -190,10 +207,20 @@ export default defineContentScript({
           onLoadData: (forceRefresh) => this.loadData(forceRefresh),
           onFilterChange: (tagKey) => this.handleFilterChange(tagKey),
           onClearFilters: () => this.handleClearFilters(),
-          onSortChange: (sortOption) => this.handleSortChange(sortOption)
+          onSortChange: (sortOption) => this.handleSortChange(sortOption),
+          onExport: (format) => this.handleExport(format)
         });
-        insertFilterBar(filterBar);
+
+        try {
+          await insertFilterBar(filterBar);
+        } catch {
+          // 삽입 실패 시 정리
+        }
         this.isInitializing = false;
+
+        // SPA 페이지 이동 시 이전 페이지의 원본 콘텐츠를 초기화
+        this.filterManager.originalContent = null;
+        this.filterManager.isFilterMode = false;
 
         // 테마 감지 시작
         startThemeDetection();
@@ -207,12 +234,52 @@ export default defineContentScript({
           this.isDataLoaded = true;
           this.updateUI();
           updateFilterBarLoadButton(cached.timestamp);
+
+          // 이전에 선택한 필터가 있으면 자동으로 다시 적용
+          if (!this.filterManager.isEmpty()) {
+            this.filterManager.renderFilteredList(this.problemTags, () => this.handleClearFilters());
+          }
         }
       }
     }
 
     // 앱 시작
     const app = new SolvedTagsApp();
+
+    // SPA 네비게이션 전에 바 제거 (React DOM reconciliation 깨짐 방지)
+    // 같은 votes 페이지 내 이동(페이지네이션)에서는 바를 유지
+    const removeBarBeforeNavigation = (newUrl) => {
+      // 새 URL이 같은 votes 페이지이면 바를 제거하지 않음
+      if (newUrl) {
+        try {
+          const resolved = new URL(newUrl, window.location.origin);
+          if (/\/profile\/[^/]+\/votes/.test(resolved.pathname)) {
+            return;
+          }
+        } catch {
+          // URL 파싱 실패 시 안전하게 바 제거
+        }
+      }
+      const bar = document.getElementById('solved-tags-bar');
+      if (bar) bar.remove();
+      // 필터 상태 초기화 (원본 콘텐츠가 stale해지므로)
+      app.filterManager.originalContent = null;
+      app.filterManager.isFilterMode = false;
+    };
+
+    const originalPushState = history.pushState;
+    history.pushState = function (...args) {
+      removeBarBeforeNavigation(args[2]);
+      return originalPushState.apply(this, args);
+    };
+
+    const originalReplaceState = history.replaceState;
+    history.replaceState = function (...args) {
+      removeBarBeforeNavigation(args[2]);
+      return originalReplaceState.apply(this, args);
+    };
+
+    window.addEventListener('popstate', removeBarBeforeNavigation);
 
     // 1) 매 500ms마다 상태 체크
     app.startWatcher();
