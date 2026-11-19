@@ -144,7 +144,7 @@ export function createNativeResults(container) {
       if (!focus && frame) {
         frame.style.height = '0';
         frame.style.visibility = 'hidden';
-        restorePreview = showPagePreview(container.parentElement.nextElementSibling, previewIds);
+        restorePreview = showPagePreview(container.closest('[data-solved-tags-stack]'), previewIds);
       }
       if (failed && ids.length) prepare();
       waitForView();

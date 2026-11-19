@@ -13,8 +13,8 @@
   <a href="#-installation">Installation</a> •
   <a href="#-usage">Usage</a> •
   <a href="#-development">Development</a> •
-  <a href="#-license">License</a>
-  <a href="#-Credits">Credits</a>
+  <a href="#-license">License</a> •
+  <a href="#-credits">Credits</a>
 </p>
 
 ---
@@ -23,13 +23,13 @@
 
 [solved.ac](https://solved.ac) 프로필의 **기여** 페이지에서 자신이 투표한 문제들의 메타 태그를 한눈에 확인할 수 있습니다.
 
-- **메타 태그 통계** - 7가지 메타 태그별 기여 개수 확인
+- **메타 태그 통계** - 기여 페이지의 **최신순** 옆에서 메타 태그 메뉴를 열어 7가지 태그별 문제 수 확인
 - **필터링** - 선택한 메타 태그 중 하나라도 포함한 문제를 40개씩 표시
-- **정렬** - 기여 순서, 문제 번호, 난이도 순으로 정렬
+- **정렬** - solved.ac에서 고른 최신순·도움이 된 순을 따르거나, 메타 태그 메뉴에서 문제 번호·난이도 순으로 정렬
 - **코멘트 표시** - 기여 시 작성한 코멘트 확인
 - **캐싱** - 현재 탭에서 조회 결과를 재사용하고 수동으로 갱신
 - **다크 모드** - solved.ac의 현재 테마에 맞춰 표시
-- **CSV/JSON 내보내기** - 기여 데이터를 CSV 또는 JSON 형식으로 내보내기
+- **CSV/JSON 내보내기** - solved.ac의 기여 종류와 의견 조건에 해당하는 전체 문제를 CSV 또는 JSON으로 저장
 
 ### 지원하는 메타 태그
 
@@ -51,9 +51,9 @@ Chrome 111 이상 또는 Firefox 128 이상을 지원합니다.
 
 1. [Chrome Web Store](https://chromewebstore.google.com/detail/solvedtags/ofcomeknbplijbojjmhcpanandbpckek)에서 설치
 
-**또는 수동 설치:**
+**ZIP으로 설치하기**
 
-1. [Chrome용 v1.4.1 ZIP](../../releases/download/v1.4.1/solved-tags-1.4.1-chrome.zip) 다운로드
+1. [Chrome용 v1.4.2 ZIP](https://github.com/GreenScreen410/solved-tags/releases/download/v1.4.2/solved-tags-1.4.2-chrome.zip) 다운로드
 2. 압축 해제
 3. Chrome에서 `chrome://extensions` 접속
 4. 우측 상단 **개발자 모드** 활성화
@@ -64,12 +64,14 @@ Chrome 111 이상 또는 Firefox 128 이상을 지원합니다.
 
 1. [Firefox Add-ons](https://addons.mozilla.org/ko/firefox/addon/solved-tags/)에서 설치
 
-**또는 수동 설치:**
+**ZIP으로 설치하기**
 
-1. [Firefox용 v1.4.1 ZIP](../../releases/download/v1.4.1/solved-tags-1.4.1-firefox.zip) 다운로드
+1. [Firefox용 v1.4.2 ZIP](https://github.com/GreenScreen410/solved-tags/releases/download/v1.4.2/solved-tags-1.4.2-firefox.zip) 다운로드
 2. Firefox에서 `about:debugging#/runtime/this-firefox` 접속
 3. **임시 부가 기능 로드** 클릭
-4. zip 파일 또는 `manifest.json` 선택
+4. 다운로드한 ZIP 파일 선택
+
+확장을 설치하거나 업데이트한 뒤 이미 열려 있는 solved.ac 기여 탭을 새로고침하세요.
 
 ---
 
@@ -77,12 +79,14 @@ Chrome 111 이상 또는 Firefox 128 이상을 지원합니다.
 
 1. solved.ac에 로그인합니다.
 2. 프로필의 기여 페이지(`https://solved.ac/ko/u/{핸들}/contributions`)를 엽니다.
-3. 제목 아래의 **메타 태그 불러오기**를 클릭합니다.
+3. **전체 기여**, **최신순** 옆의 **메타 태그**를 열어 원하는 태그를 선택합니다.
+4. **전체 기여**, **최신순**, **의견 있는 기여만**을 바꿔 보세요. 선택한 메타 태그는 유지되고 새 조건에 맞춰 개수와 결과가 갱신됩니다.
+5. 메타 태그 메뉴의 **필터 초기화**를 누르면 현재 기여 조건의 원래 목록으로 돌아갑니다.
 
-확장 프로그램은 현재 solved.ac 로그인 세션에서 볼 수 있는 기여만 조회합니다. 필터를 선택하면 현재 페이지에서 확인할 수 있는 일치 항목을 먼저 표시하고, 나머지 기여 행을 같은 목록에 채웁니다. 같은 문제에 여러 번 기여했다면 선택한 태그가 포함된 가장 최근 기여를 표시합니다.
+확장 프로그램은 현재 solved.ac 로그인 세션에서 볼 수 있는 기여만 조회합니다. 필터를 선택하면 현재 페이지에서 확인할 수 있는 일치 항목을 먼저 표시하고, 나머지 기여 행을 같은 목록에 채웁니다. 같은 문제에 여러 번 기여했다면 사이트의 현재 정렬에서 선택한 태그에 해당하는 첫 기여를 표시합니다.
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="solved.tags 1.4 메타 태그 필터와 통계 예시" width="600">
+  <img src="docs/screenshot.png" alt="의견 있는 기여만, 전체 기여, 최신순, 메타 태그가 나란히 배치된 기여 페이지" width="725">
 </p>
 
 ---
@@ -101,7 +105,7 @@ Chrome 111 이상 또는 Firefox 128 이상을 지원합니다.
 ```bash
 git clone https://github.com/GreenScreen410/solved-tags.git
 cd solved-tags
-npm install
+npm ci
 ```
 
 ### 빌드
@@ -130,33 +134,6 @@ npm run dev
 
 # Firefox 개발 서버
 npm run dev:firefox
-```
-
-### 프로젝트 구조
-
-```
-solved-tags/
-├── src/
-│   ├── entrypoints/
-│   │   ├── content.js         # 컨텐츠 스크립트 진입점
-│   │   ├── native-rows.content.js # 필터 결과를 사이트의 기여 행으로 표시
-│   │   ├── content/
-│   │   │   ├── ui/
-│   │   │   │   ├── filterBar.js    # 필터 바 UI
-│   │   │   │   ├── filter.js       # 필터 로직
-│   │   │   │   └── nativeResults.js # solved.ac 기여 목록 프레임
-│   │   │   ├── api.js         # solved.ac v4 API 통신
-│   │   │   └── content.css    # 컨텐츠 스타일
-│   │   └── popup/
-│   │       ├── index.html     # 팝업 UI
-│   │       ├── style.css      # 팝업 스타일
-│   │       └── main.js        # 팝업 로직
-│   └── utils/
-│       └── constants.js       # 공유 상수 (메타 태그 등)
-├── public/                    # 정적 에셋 (아이콘 등)
-├── .output-v4/                # 빌드 출력 (WXT)
-├── wxt.config.ts              # WXT 설정 (매니페스트 포함)
-└── package.json
 ```
 
 ---

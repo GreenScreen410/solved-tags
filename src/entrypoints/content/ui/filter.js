@@ -20,7 +20,7 @@ export function filterProblems(problems, activeTags, sort) {
     if (tags.some(tag => problem.votesByMetaTag.has(tag))) matches.push(problem);
   }
 
-  // The API and the problem collection already use recent-contribution order.
+  // The API and the problem collection already follow the selected native sort.
   if (sort !== SORT_OPTIONS.ORDER) matches.sort(compareBy[sort]);
   return matches;
 }

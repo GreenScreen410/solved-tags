@@ -4,6 +4,7 @@ export function showPagePreview(native, problemIds) {
   if (!native || !problemIds[0]) return;
   const selector = 'a[href*="/p/"][href$="/contributions"]';
   for (const list of native.children) {
+    if (list.matches('[data-solved-tags-toolbar], .solved-tags-panel')) continue;
     const links = list.querySelectorAll(selector);
     if (!links.length) continue;
 

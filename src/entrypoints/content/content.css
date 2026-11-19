@@ -1,250 +1,207 @@
-.solved-tags-panel {
+/* Match the native small select controls. The trigger also picks up the
+   solved.ac trigger class at mount time so its theme follows the page. */
+[data-solved-tags-trigger] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 0 0 auto;
+  gap: .75rem;
+  width: 8rem;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--chakra-colors-border, ButtonBorder);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--chakra-colors-fg, CanvasText);
+  font: inherit;
+  font-size: .875rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+[data-solved-tags-trigger][data-selected] {
+  border-color: var(--chakra-colors-primary-solid, Highlight);
+}
+
+.solved-tags-caret {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  color: var(--chakra-colors-fg-muted, GrayText);
+}
+
+/* The host's horizontal Stack defaults to nowrap. Allow the native controls
+   and the additional selector to flow to a second line on narrow pages. */
+[data-solved-tags-toolbar],
+[data-solved-tags-controls] {
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap !important;
+}
+[data-solved-tags-controls] { justify-content: flex-end; }
+[data-solved-tags-controls] > * { min-width: 0; max-width: 100%; }
+
+.solved-tags-panel,
+.solved-tags-menu {
   --st-bg: var(--chakra-colors-bg, Canvas);
-  --st-subtle: var(--chakra-colors-bg-subtle, Canvas);
+  --st-subtle: var(--chakra-colors-bg-subtle, ButtonFace);
   --st-hover: var(--chakra-colors-bg-muted, ButtonFace);
   --st-text: var(--chakra-colors-fg, CanvasText);
   --st-muted: var(--chakra-colors-fg-muted, GrayText);
   --st-border: var(--chakra-colors-border, ButtonBorder);
-  --st-accent: var(--chakra-colors-primary-solid, #087f39);
-  --st-accent-tint: color-mix(in srgb, var(--st-accent) 10%, var(--st-bg));
-  margin-block: 0 1.25rem;
-}
-
-.solved-tags-box {
-  padding: 1rem 1.125rem;
-  border: 1px solid var(--st-border);
-  border-radius: .875rem;
-  background: var(--st-bg);
+  --st-accent: var(--chakra-colors-primary-solid, Highlight);
   color: var(--st-text);
   font: inherit;
+}
+
+/* Keep the native controls row and the site renderer's preload frame mounted
+   without introducing an empty row in the site's vertical Stack. */
+.solved-tags-panel:not([data-filtered]) { display: contents; }
+.solved-tags-results:not([data-active]) { position: absolute; width: 0; height: 0; overflow: hidden; }
+.solved-tags-panel [hidden],
+.solved-tags-menu [hidden],
+.solved-tags-panel[data-filtered] ~ :not([data-solved-tags-preview-list]),
+[data-solved-tags-preview-list] > :not([data-solved-tags-preview-row]) { display: none !important; }
+
+.solved-tags-menu {
+  position: fixed;
+  z-index: var(--chakra-z-index-popover, 1500);
+  width: min(17rem, calc(100vw - 1rem));
+  box-sizing: border-box;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--st-border);
+  border-radius: .375rem;
+  padding: .25rem;
+  background: var(--st-bg);
+  color: var(--st-text);
+  box-shadow: var(--chakra-shadows-md, 0 4px 12px #0002);
   font-size: .875rem;
-  line-height: 1.5;
+  line-height: 1.25rem;
   text-align: start;
 }
 
-.solved-tags-panel [hidden],
-.solved-tags-panel[data-filtered] + div:not([data-solved-tags-preview]),
-[data-solved-tags-preview] > :not([data-solved-tags-preview-list]),
-[data-solved-tags-preview-list] > :not([data-solved-tags-preview-row]) { display: none !important; }
+.solved-tags-menu:focus { outline: none; }
 
-.solved-tags-panel :is(h3, p, ul) { margin: 0; }
-
-.solved-tags-heading,
-.solved-tags-identity,
-.solved-tags-filters,
-.solved-tags-footer,
-.solved-tags-export,
-.solved-tags-result-tools,
-.solved-tags-panel [data-summary] {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: .5rem;
-}
-
-.solved-tags-heading,
-.solved-tags-footer {
-  justify-content: space-between;
-}
-
-.solved-tags-identity {
-  flex: 1 1 10rem;
-  flex-wrap: nowrap;
-  gap: .7rem;
-  min-width: 0;
-}
-
-.solved-tags-identity h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -.025em;
-}
-
-.solved-tags-symbol {
-  display: inline-flex;
-  flex: none;
-  align-items: end;
-  justify-content: center;
-  gap: 2px;
-  width: 2.125rem;
-  height: 2.125rem;
-  padding-bottom: .625rem;
-  border-radius: .625rem;
-  background: var(--st-accent-tint);
-  color: var(--st-accent);
-}
-
-.solved-tags-symbol i {
-  width: 3px;
-  height: 7px;
-  border-radius: 2px;
-  background: currentColor;
-}
-
-.solved-tags-symbol i:nth-child(2) { height: 14px; }
-.solved-tags-symbol i:last-child { height: 10px; }
-
-.solved-tags-panel button,
-.solved-tags-panel select {
+.solved-tags-menu :is(button, select),
+.solved-tags-panel [data-more],
+.solved-tags-results button {
   box-sizing: border-box;
-  min-height: 2rem;
+  min-height: 1.875rem;
+  padding: .2rem .5rem;
   border: 1px solid var(--st-border);
-  border-radius: .5rem;
-  padding: .3rem .65rem;
+  border-radius: .25rem;
   background: var(--st-bg);
   color: var(--st-text);
   font: inherit;
   font-size: .8125rem;
-  font-weight: 550;
-  line-height: 1.4;
-}
-
-.solved-tags-panel button {
-  display: inline-flex;
-  align-items: center;
-  gap: .35rem;
-}
-
-.solved-tags-panel button {
-  justify-content: center;
   cursor: pointer;
 }
 
-.solved-tags-panel button:hover:not(:disabled) { background: var(--st-hover); }
+.solved-tags-menu button:hover:enabled,
+.solved-tags-panel [data-more]:hover,
+.solved-tags-results button:hover { background: var(--st-hover); }
 
-.solved-tags-panel [data-load]:enabled {
-  padding-inline: .85rem;
-  border-color: var(--st-accent);
-  background: var(--st-accent);
-  color: var(--chakra-colors-primary-contrast, white);
+.solved-tags-menu button:disabled { opacity: .6; cursor: default; }
+
+.solved-tags-panel :is(button, select, a):focus-visible,
+.solved-tags-menu :is(button, select):focus-visible,
+[data-solved-tags-trigger]:focus-visible {
+  outline: 2px solid var(--chakra-colors-primary-solid, Highlight);
+  outline-offset: -2px;
 }
 
-.solved-tags-panel[data-loaded] [data-load]:enabled {
-  background: var(--st-subtle);
-  color: var(--st-text);
-  border-color: var(--st-border);
+.solved-tags-filters { display: grid; }
+.solved-tags-filters button {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  min-height: 2.125rem;
+  border: none;
+  text-align: start;
+  font-size: .875rem;
 }
-
-.solved-tags-panel [data-load]:enabled:hover { filter: brightness(.95); }
-.solved-tags-panel button:disabled { opacity: .6; cursor: default; }
-
-.solved-tags-panel :is(button, select, a):focus-visible {
-  outline: 2px solid var(--st-accent);
-  outline-offset: 2px;
-}
-
-.solved-tags-panel [data-status],
-.solved-tags-panel [data-summary],
-.solved-tags-export,
-.solved-tags-result-tools {
+.solved-tags-filters button[aria-pressed="true"] { background: var(--st-subtle); }
+.solved-tags-filters svg { flex: none; color: var(--tag-color); }
+.solved-tags-count {
+  margin-inline-start: auto;
   color: var(--st-muted);
   font-size: .75rem;
-}
-
-.solved-tags-panel [data-status] { overflow-wrap: anywhere; }
-.solved-tags-panel [data-status]:empty { display: none; }
-
-.solved-tags-filters {
-  gap: .45rem;
-  margin-block: 1rem .85rem;
-}
-
-.solved-tags-filters button {
-  gap: .4rem;
-  padding-inline: .6rem .45rem;
-  border-radius: 2rem;
-  background: var(--st-subtle);
-}
-
-.solved-tags-filters button[aria-pressed="true"] {
-  border-color: var(--tag-color);
-  background: color-mix(in srgb, var(--tag-color) 12%, var(--st-bg));
-  box-shadow: inset 0 0 0 1px var(--tag-color);
-}
-
-.solved-tags-filters svg {
-  flex: none;
-  color: var(--tag-color);
-}
-
-.solved-tags-count,
-.solved-tags-panel [data-summary] {
   font-variant-numeric: tabular-nums;
 }
 
-.solved-tags-count {
-  min-width: 1.25rem;
-  padding-inline: .3rem;
-  border-radius: .5rem;
-  background: var(--st-hover);
-  color: var(--st-muted);
-  font-size: .6875rem;
-  text-align: center;
+.solved-tags-filters button::after {
+  content: '';
+  flex: none;
+  width: .75rem;
+  height: .4rem;
+  margin-inline: .125rem;
 }
 
-.solved-tags-footer {
-  gap: .6rem 1rem;
-  border-top: 1px solid var(--st-border);
-  padding-top: .7rem;
+.solved-tags-filters button[aria-pressed="true"]::after {
+  transform: translateY(-1px) rotate(-45deg);
+  border: solid var(--st-accent);
+  border-width: 0 0 2px 2px;
 }
 
-.solved-tags-panel [data-summary] { gap: .2rem .7rem; }
-.solved-tags-panel [data-summary] span { white-space: nowrap; }
+.solved-tags-result-tools,
+.solved-tags-actions,
+.solved-tags-export,
+.solved-tags-menu [data-summary] {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .25rem .5rem;
+}
 
+.solved-tags-menu [data-summary],
+.solved-tags-menu [data-status],
 .solved-tags-panel [data-match-summary] {
-  color: var(--st-text);
-  font-weight: 650;
+  margin: 0;
+  color: var(--st-muted);
+  font-size: .75rem;
+  overflow-wrap: anywhere;
 }
 
-.solved-tags-export {
-  gap: .25rem;
-  margin-inline-start: auto;
+.solved-tags-menu [data-summary],
+.solved-tags-result-tools {
+  margin-top: .25rem;
+  border-top: 1px solid var(--st-border);
+  padding: .4rem .4rem 0;
 }
 
-.solved-tags-export span { margin-inline-end: .15rem; }
+.solved-tags-menu [data-status] { padding: .2rem .4rem; }
+.solved-tags-menu [data-status]:empty { display: none; }
 
-.solved-tags-export button,
-.solved-tags-result-tools button,
-.solved-tags-result-tools select {
-  min-height: 1.75rem;
+.solved-tags-result-tools,
+.solved-tags-actions {
+  justify-content: space-between;
+  color: var(--st-muted);
   font-size: .75rem;
 }
 
-.solved-tags-export button {
-  padding: .15rem .45rem;
-  letter-spacing: .025em;
-}
-
-.solved-tags-result-tools {
-  justify-content: space-between;
-  margin-top: .75rem;
-}
-
 .solved-tags-result-tools select {
-  margin-inline-start: .25rem;
+  max-width: 100%;
   appearance: auto;
 }
+.solved-tags-actions { padding: .35rem .4rem; }
+.solved-tags-export { gap: .25rem; }
+.solved-tags-export button { min-height: 1.625rem; font-size: .75rem; }
 
-.solved-tags-results[data-active] { margin-top: .75rem; }
+.solved-tags-panel [data-match-summary] { padding-block: .15rem .5rem; }
 .solved-tags-results iframe { display: block; width: 100%; border: 0; }
 .solved-tags-results [role="status"] { padding-block: .75rem; color: var(--st-muted); }
 .solved-tags-results button { margin-inline-start: .5rem; }
-
-.solved-tags-panel [data-more] {
-  display: flex;
-  width: 100%;
-  margin-top: .9rem;
-  background: var(--st-subtle);
-}
+.solved-tags-panel [data-more] { width: 100%; margin-top: .75rem; }
 
 @media (max-width: 32rem) {
-  .solved-tags-box { padding: .875rem; }
-  .solved-tags-symbol { width: 1.9rem; height: 1.9rem; padding-bottom: .5rem; }
-  .solved-tags-heading { gap: .625rem; }
-  .solved-tags-identity { flex-basis: 7.75rem; }
-  .solved-tags-export { margin-inline-start: 0; }
-}
-
-@media (forced-colors: active) {
-  .solved-tags-filters button[aria-pressed="true"] { outline: 2px solid Highlight; }
+  [data-solved-tags-toolbar] [data-solved-tags-controls] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--chakra-spacing-2, .5rem);
+    width: 100%;
+  }
+  [data-solved-tags-controls] > :is([data-scope="select"], [data-solved-tags-trigger]) { width: 100%; }
 }

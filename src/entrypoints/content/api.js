@@ -12,9 +12,20 @@ const LEGACY_META_TAGS = {
   _proof_by_ac: ':proof'
 };
 
-export async function fetchContributionStats(handle, locale, signal, onProgress) {
+// Pagination belongs to the native list. The extension counts all pages for
+// the current contribution type, comment filter, and sort.
+export function contributionQuery(search) {
+  const params = new URLSearchParams(search);
+  const query = new URLSearchParams({ sort: params.get('sort') === 'helpful' ? 'helpful' : 'recent' });
+  const only = params.get('only');
+  if (['scoring', 'helpful', 'vouched'].includes(only)) query.set('only', only);
+  if (params.get('commented') === 'true') query.set('commented', 'true');
+  return query.toString();
+}
+
+export async function fetchContributionStats(handle, locale, query, signal, onProgress) {
   const url = new URL(`/api/v4/users/${encodeURIComponent(handle)}/contributions`, location.origin);
-  url.searchParams.set('sort', 'recent');
+  url.search = query;
   url.searchParams.set('limit', '20');
 
   async function fetchPage(page) {
@@ -55,7 +66,7 @@ export async function fetchContributionStats(handle, locale, signal, onProgress)
     for (const result of batch) addContributions(problems, result.items, locale);
     onProgress?.(page + batchSize - 1, pages);
   }
-  return { problems, hiddenCount: first.hiddenCount };
+  return { problems, hiddenCount: first.hiddenCount, scoped: url.searchParams.has('only') || url.searchParams.has('commented') };
 }
 
 function addContributions(problems, items, locale) {
@@ -86,7 +97,7 @@ function addContributions(problems, items, locale) {
       const key = tag?.key ?? legacyKey;
       const metaKey = Object.hasOwn(LEGACY_META_TAGS, key) ? LEGACY_META_TAGS[key] : key;
       if (Object.hasOwn(META_TAGS, metaKey)) {
-        // Keep the most recent real contribution for each tag on this problem.
+        // Keep the first contribution for each tag in the native API's sort order.
         if (!entry.votesByMetaTag.has(metaKey)) entry.votesByMetaTag.set(metaKey, item);
       } else if (tag && !tag.isMeta) {
         entry.allTags.add(tag.key);

@@ -1,4 +1,4 @@
-import { fetchContributionStats } from './content/api.js';
+import { contributionQuery, fetchContributionStats } from './content/api.js';
 import { createFilterBar } from './content/ui/filterBar.js';
 import { exportAsJSON, exportAsCSV } from '@/utils/export.js';
 import './content/content.css';
@@ -29,37 +29,63 @@ function hasLoginPrompt(nativeContent, path) {
   return false;
 }
 
+// Locate the controls by their option values across locales and Chakra class changes.
+function findToolbar(stack) {
+  const only = stack?.querySelector('select option[value="scoring"]')?.closest('[data-part="root"]');
+  const sort = stack?.querySelector('select option[value="recent"]')?.closest('[data-part="root"]');
+  const controls = sort?.parentElement;
+  const template = sort?.querySelector('button[data-part="trigger"]');
+  if (!only || !template || only.parentElement !== controls) return;
+  let toolbar = controls;
+  while (toolbar.parentElement !== stack) toolbar = toolbar.parentElement;
+  return { controls, toolbar, template };
+}
+
 export default defineContentScript({
   matches: ['https://solved.ac/*'],
   runAt: 'document_idle',
   cssInjectionMode: 'manifest',
   async main(ctx) {
     const cache = new Map();
-    const observer = new MutationObserver(syncPage);
+    const observer = new MutationObserver(changes => {
+      if (panel && changes.some(({ target }) => !panel.ui.root.contains(target) && !panel.ui.trigger.contains(target))) syncPage();
+    });
     let enabled = (await browser.storage.local.get('enabled')).enabled !== false;
     let panel;
+
+    function detachToolbar() {
+      if (!panel?.mount) return;
+      const { stack, toolbar, controls } = panel.mount;
+      stack.removeAttribute('data-solved-tags-stack');
+      toolbar.removeAttribute('data-solved-tags-toolbar');
+      controls.removeAttribute('data-solved-tags-controls');
+      panel.ui.destroy();
+      panel.ui.root.remove();
+      panel.mount = undefined;
+    }
 
     function unmount() {
       observer.disconnect();
       panel?.request?.abort();
-      panel?.ui.destroy();
-      panel?.ui.root.remove();
+      if (panel?.mount) detachToolbar();
+      else panel?.ui.destroy();
       panel = undefined;
     }
 
     function updateRoute() {
       const path = location.pathname;
-      if (enabled && panel?.path === path) return;
+      if (enabled && panel?.path === path) {
+        syncPage();
+        return;
+      }
       unmount();
       if (/\/(?:login|logout)\/?$/.test(path)) cache.clear();
       const profile = enabled && profileFromPath(path);
       if (!profile) return;
 
       const { handle, locale } = profile;
-      const titleLocale = locale || document.documentElement.lang;
       const current = {
-        path, handle, titleLocale,
-        cacheKey: JSON.stringify([handle.toLowerCase(), titleLocale]),
+        path, handle, titleLocale: locale || document.documentElement.lang,
         ui: createFilterBar({
           onLoad: () => load(current),
           onExport: (format, problems) => {
@@ -78,47 +104,68 @@ export default defineContentScript({
         updateRoute();
         return;
       }
-      const heading = panel.heading?.isConnected ? panel.heading : document.querySelector(HEADING_SELECTOR);
-      if (!heading) {
-        if (panel.heading !== null) {
-          observer.disconnect();
-          observer.observe(document.body, { childList: true, subtree: true });
-          panel.heading = null;
+      const { ui } = panel;
+      const heading = panel.heading?.isConnected && panel.heading.matches(HEADING_SELECTOR)
+        ? panel.heading : document.querySelector(HEADING_SELECTOR);
+      const stack = heading?.nextElementSibling;
+      if (panel.heading !== heading || panel.stack !== stack) {
+        observer.disconnect();
+        for (let ancestor = heading?.parentElement; ancestor; ancestor = ancestor.parentElement) {
+          observer.observe(ancestor, { childList: true });
+        }
+        observer.observe(stack ?? document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['href'] });
+        panel.heading = heading;
+        panel.stack = stack;
+      }
+
+      const previous = panel.mount;
+      if (!previous || previous.stack !== stack || previous.toolbar.parentElement !== stack ||
+          !previous.toolbar.contains(previous.controls) || !previous.controls.contains(previous.template)) {
+        const next = findToolbar(stack);
+        if (previous) detachToolbar();
+        if (next) {
+          panel.mount = { ...next, stack };
+          stack.setAttribute('data-solved-tags-stack', '');
+          next.toolbar.setAttribute('data-solved-tags-toolbar', '');
+          next.controls.setAttribute('data-solved-tags-controls', '');
+          ui.trigger.className = next.template.className;
+        }
+      }
+      const attachResults = panel.mount && panel.mount.toolbar.nextElementSibling !== ui.root;
+      if (panel.mount) {
+        const { controls, toolbar } = panel.mount;
+        if (ui.trigger.parentElement !== controls) controls.append(ui.trigger);
+        if (attachResults) toolbar.after(ui.root);
+      }
+
+      const locked = hasLoginPrompt(stack, panel.path);
+      const query = contributionQuery(location.search);
+      if (locked === panel.locked && query === panel.query) {
+        // Moving an iframe restarts its document. Restore the current view if
+        // the site replaced the toolbar or the stack during a route update.
+        if (attachResults && !locked) {
+          const cached = cache.get(panel.cacheKey);
+          if (cached) ui.setData(cached);
+          else if (ui.needsData && !panel.request) load(panel);
         }
         return;
       }
-
-      const { ui } = panel;
-      if (heading.nextElementSibling !== ui.root) heading.after(ui.root);
-      const native = ui.root.nextElementSibling;
-      if (panel.heading !== heading || panel.native !== native) {
-        observer.disconnect();
-        // Watch direct replacements along the route layout and login changes inside the native list.
-        // The extension's own result rows are outside the observed subtrees.
-        for (let ancestor = heading.parentElement; ancestor; ancestor = ancestor.parentElement) {
-          observer.observe(ancestor, { childList: true });
-        }
-        if (native) observer.observe(native, {
-          childList: true, subtree: true, attributes: true, attributeFilter: ['href']
-        });
-        panel.heading = heading;
-        panel.native = native;
-      }
-
-      const locked = hasLoginPrompt(native, panel.path);
-      if (locked === panel.locked) return;
+      panel.request?.abort();
+      panel.request = undefined;
       panel.locked = locked;
+      panel.query = query;
+      panel.cacheKey = JSON.stringify([panel.handle.toLowerCase(), panel.titleLocale, query]);
       if (locked) {
-        panel.request?.abort();
-        panel.request = undefined;
         cache.clear();
         ui.setData(null);
         ui.setStatus('메타 태그를 보려면 solved.ac에 로그인해 주세요.', true);
-      } else {
-        const cached = cache.get(panel.cacheKey);
-        ui.setData(cached ?? null);
-        ui.setStatus(cached ? `조회 시각 ${clock.format(cached.timestamp)}` : '');
+        return;
       }
+      ui.suspend();
+      const cached = cache.get(panel.cacheKey);
+      if (cached) ui.setData(cached);
+      ui.setStatus(cached ? `조회 시각 ${clock.format(cached.timestamp)}` : '');
+      if (!cached && ui.needsData && panel.mount) load(panel);
     }
 
     async function load(current) {
@@ -129,7 +176,7 @@ export default defineContentScript({
       current.ui.setStatus('기여 데이터를 불러오는 중…', true);
 
       try {
-        const stats = await fetchContributionStats(current.handle, current.titleLocale, request.signal, (done, total) => {
+        const stats = await fetchContributionStats(current.handle, current.titleLocale, current.query, request.signal, (done, total) => {
           if (!request.signal.aborted && done < total) {
             current.ui.setStatus(`기여 데이터를 불러오는 중… ${done} / ${total}페이지`, true);
           }
@@ -145,7 +192,6 @@ export default defineContentScript({
           current.ui.setStatus(error.message || '기여 데이터를 불러오는 중 오류가 발생했습니다.');
         }
       } finally {
-        // A failed page can leave other requests in the same batch in flight.
         request.abort();
         if (current.request === request) current.request = undefined;
       }
