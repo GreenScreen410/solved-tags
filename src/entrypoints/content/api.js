@@ -1,83 +1,94 @@
-// API 관련 함수들
+import { META_TAGS } from '../../utils/constants.js';
 
-/**
- * API에서 모든 투표 데이터 가져오기
- * @param {string} handle - 사용자 핸들
- * @returns {Promise<Array>} 투표 데이터 배열
- */
-export async function fetchAllVotes(handle) {
-  const votes = [];
-  let totalCount = 0;
+const PAGE_BATCH_SIZE = 4;
 
-  try {
-    // 첫 페이지 가져오기
-    const firstResponse = await fetch(`https://solved.ac/api/v3/user/votes?handle=${handle}&page=1`);
-    if (!firstResponse.ok) throw new Error('API 요청 실패');
+const LEGACY_META_TAGS = {
+  _recommend: ':recommend',
+  _brilliant: ':brilliant',
+  _educational: ':edu',
+  _implementation: ':impl',
+  _mistakable: ':mistake',
+  _language_shortcuts: ':lang',
+  _proof_by_ac: ':proof'
+};
 
-    const firstData = await firstResponse.json();
-    totalCount = firstData.count;
-    votes.push(...firstData.items);
+export async function fetchContributionStats(handle, locale, signal, onProgress) {
+  const url = new URL(`/api/v4/users/${encodeURIComponent(handle)}/contributions`, location.origin);
+  url.searchParams.set('sort', 'recent');
+  url.searchParams.set('limit', '20');
 
-    const totalPages = Math.ceil(totalCount / 30);
-
-    const pagePromises = [];
-    for (let p = 2; p <= totalPages; p++) {
-      pagePromises.push(
-        fetch(`https://solved.ac/api/v3/user/votes?handle=${handle}&page=${p}`)
-          .then(res => res.json())
-          .then(data => data.items)
-      );
+  async function fetchPage(page) {
+    url.searchParams.set('page', String(page));
+    const options = { credentials: 'same-origin', signal };
+    // Firefox MV2 provides a fetch that uses the page's origin and login session.
+    const response = typeof globalThis.content?.fetch === 'function'
+      ? await globalThis.content.fetch(url.href, options)
+      : await fetch(url.href, options);
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('solved.ac 로그인 상태와 기여 공개 범위를 확인해 주세요.');
+      }
+      if (response.status === 429) {
+        throw new Error('요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.');
+      }
+      throw new Error(`기여 데이터를 불러오지 못했습니다. (HTTP ${response.status})`);
     }
 
-    const remainingPages = await Promise.all(pagePromises);
-    remainingPages.forEach(items => votes.push(...items));
-
-    return votes;
-  } catch (error) {
-    console.error('[Solved Tags] 데이터 가져오기 실패:', error);
-    return [];
+    const data = await response.json();
+    if (!Array.isArray(data.items) || !Number.isInteger(data.total) || data.total < 0 ||
+        !Number.isInteger(data.pageSize) || data.pageSize < 1 || data.page !== page ||
+        !Number.isInteger(data.hiddenCount) || data.hiddenCount < 0) {
+      throw new Error('solved.ac의 기여 데이터 응답 형식이 올바르지 않습니다.');
+    }
+    return data;
   }
+
+  const first = await fetchPage(1);
+  const problems = new Map();
+  addContributions(problems, first.items, locale);
+  const pages = Math.ceil(first.total / first.pageSize);
+  onProgress?.(1, Math.max(1, pages));
+  for (let page = 2; page <= pages; page += PAGE_BATCH_SIZE) {
+    const batchSize = Math.min(PAGE_BATCH_SIZE, pages - page + 1);
+    const batch = await Promise.all(Array.from({ length: batchSize },
+      (_, offset) => fetchPage(page + offset)));
+    for (const result of batch) addContributions(problems, result.items, locale);
+    onProgress?.(page + batchSize - 1, pages);
+  }
+  return { problems, hiddenCount: first.hiddenCount };
 }
 
-/**
- * 문제별 메타 태그 집계
- * @param {Array} votes - 투표 데이터 배열
- * @returns {Map} 문제별 태그 맵
- */
-export function aggregateMetaTags(votes) {
-  const problemTagsMap = new Map();
-  let orderIndex = 0;
-
-  votes.forEach(vote => {
-    const problemId = vote.problemId;
-
-    if (!problemTagsMap.has(problemId)) {
-      problemTagsMap.set(problemId, {
+function addContributions(problems, items, locale) {
+  for (const item of items) {
+    const { problem, vote } = item;
+    const { problemId, subId, titles, level } = problem;
+    const key = JSON.stringify([problemId, subId]);
+    let entry = problems.get(key);
+    if (!entry) {
+      const title = titles.find(item => item.language === locale) ??
+        titles.find(item => item.isOriginal) ?? titles[0];
+      entry = {
         problemId,
-        title: vote.problem?.titleKo || vote.problem?.title || vote.titleKo || vote.title,
-        level: vote.problem?.level,      // 문제의 현재 난이도
-        voteLevel: vote.level,           // 사용자가 투표한(기여한) 난이도
-        metaTags: new Set(),
-        allTags: [],
-        description: vote.comment || '',
-        order: orderIndex++              // 기여 순서 (API 응답 순서)
-      });
+        subId,
+        title: title?.title ?? '',
+        level,
+        voteLevel: vote.level,
+        description: vote.comment ?? '',
+        votesByMetaTag: new Map(),
+        allTags: new Set()
+      };
+      problems.set(key, entry);
     }
 
-    const problem = problemTagsMap.get(problemId);
-
-    vote.voteTags.forEach(tag => {
-      if (tag.key.startsWith('_')) {
-        problem.metaTags.add(tag.key);
+    for (const { tag, legacyKey } of vote.tags) {
+      const key = tag?.key ?? legacyKey;
+      const metaKey = Object.hasOwn(LEGACY_META_TAGS, key) ? LEGACY_META_TAGS[key] : key;
+      if (Object.hasOwn(META_TAGS, metaKey)) {
+        // Keep the most recent real contribution for each tag on this problem.
+        if (!entry.votesByMetaTag.has(metaKey)) entry.votesByMetaTag.set(metaKey, item);
+      } else if (tag && !tag.isMeta) {
+        entry.allTags.add(tag.key);
       }
-      if (!tag.isMeta && !tag.key.startsWith('_')) {
-        const tagName = tag.displayNames?.find(d => d.language === 'ko')?.name || tag.key;
-        if (!problem.allTags.find(t => t.key === tag.key)) {
-          problem.allTags.push({ key: tag.key, name: tagName });
-        }
-      }
-    });
-  });
-
-  return problemTagsMap;
+    }
+  }
 }

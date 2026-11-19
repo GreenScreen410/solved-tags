@@ -1,113 +1,58 @@
-// 데이터 내보내기 유틸리티
 import { META_TAGS, TIER_NAMES } from './constants.js';
 
-/**
- * problemTags Map에서 정돈된 데이터 배열 생성
- * @param {Map} problemTags - 문제별 태그 맵
- * @returns {Array} 정돈된 문제 데이터 배열
- */
-function buildExportData(problemTags) {
-  const data = [];
-
-  problemTags.forEach((problem) => {
-    const metaTagNames = [...problem.metaTags]
-      .filter(key => META_TAGS[key])
-      .map(key => META_TAGS[key].ko);
-
-    data.push({
-      problemId: problem.problemId,
-      title: problem.title || '',
-      level: problem.level == null ? '난이도 미제공' : (TIER_NAMES[problem.level] || 'Unrated'),
-      voteLevel: problem.voteLevel == null ? '난이도 미제공' : (TIER_NAMES[problem.voteLevel] || 'Unrated'),
-      metaTags: metaTagNames,
-      tags: problem.allTags.map(t => t.name),
-      comment: problem.description || ''
-    });
-  });
-
-  return data;
+function tierName(level) {
+  return level == null ? '난이도 미제공' : (TIER_NAMES[level] ?? 'Unrated');
 }
 
-/**
- * JSON 파일로 내보내기
- * @param {Map} problemTags - 문제별 태그 맵
- * @param {string} handle - 사용자 핸들
- */
-export function exportAsJSON(problemTags, handle) {
-  const data = buildExportData(problemTags);
-  const exportObj = {
-    handle,
-    exportedAt: new Date().toISOString(),
-    count: data.length,
-    problems: data
+function exportProblem(problem) {
+  return {
+    problemId: problem.problemId,
+    subId: problem.subId,
+    title: problem.title || '',
+    level: tierName(problem.level),
+    voteLevel: tierName(problem.voteLevel),
+    metaTags: Array.from(problem.votesByMetaTag.keys(), key => META_TAGS[key]?.ko).filter(Boolean),
+    tags: [...problem.allTags],
+    comment: problem.description || ''
   };
-
-  const json = JSON.stringify(exportObj, null, 2);
-  const timestamp = new Date().toISOString().slice(0, 10);
-  const filename = `solved-tags_${handle}_${timestamp}.json`;
-
-  downloadFile(json, filename, 'application/json');
 }
 
-/**
- * CSV 파일로 내보내기
- * @param {Map} problemTags - 문제별 태그 맵
- * @param {string} handle - 사용자 핸들
- */
-export function exportAsCSV(problemTags, handle) {
-  const data = buildExportData(problemTags);
-
-  const headers = ['문제 번호', '제목', '현재 난이도', '투표 난이도', '메타 태그', '태그', '코멘트'];
-  const rows = data.map(p => [
-    p.problemId,
-    csvEscape(p.title),
-    p.level,
-    p.voteLevel,
-    csvEscape(p.metaTags.join(', ')),
-    csvEscape(p.tags.join(', ')),
-    csvEscape(p.comment)
-  ].join(','));
-
-  // BOM 추가 (한글 엑셀 호환)
-  const bom = '\uFEFF';
-  const csv = bom + [headers.join(','), ...rows].join('\n');
-  const timestamp = new Date().toISOString().slice(0, 10);
-  const filename = `solved-tags_${handle}_${timestamp}.csv`;
-
-  downloadFile(csv, filename, 'text/csv;charset=utf-8');
+export function exportAsJSON(problems, handle) {
+  const exportedAt = new Date().toISOString();
+  const payload = {
+    handle,
+    exportedAt,
+    count: problems.size,
+    problems: Array.from(problems.values(), exportProblem)
+  };
+  downloadFile(JSON.stringify(payload, null, 2), handle, exportedAt, 'json', 'application/json');
 }
 
-/**
- * CSV 필드 이스케이프
- */
-function csvEscape(value) {
-  if (value == null) return '';
-  const str = String(value);
-  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-    return `"${str.replace(/"/g, '""')}"`;
+export function exportAsCSV(problems, handle) {
+  const rows = ['\uFEFF문제 번호,하위 ID,제목,현재 난이도,투표 난이도,메타 태그,태그,코멘트'];
+  for (const problem of problems.values()) {
+    const p = exportProblem(problem);
+    const fields = [
+      p.problemId, p.subId, p.title, p.level, p.voteLevel,
+      p.metaTags.join(', '), p.tags.join(', '), p.comment
+    ];
+    rows.push(fields.map(csvEscape).join(','));
   }
-  return str;
+  downloadFile(rows.join('\n'), handle, new Date().toISOString(), 'csv', 'text/csv;charset=utf-8');
 }
 
-/**
- * Blob API를 사용한 파일 다운로드
- * @param {string} content - 파일 내용
- * @param {string} filename - 파일명
- * @param {string} mimeType - MIME 타입
- */
-function downloadFile(content, filename, mimeType) {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
+function csvEscape(value) {
+  const text = String(value ?? '');
+  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+}
 
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-
-  // 정리
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 100);
+function downloadFile(content, handle, exportedAt, extension, mimeType) {
+  const url = URL.createObjectURL(new Blob([content], { type: mimeType }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `solved-tags_${handle}_${exportedAt.slice(0, 10)}.${extension}`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 100);
 }

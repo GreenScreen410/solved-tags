@@ -1,302 +1,169 @@
-// Content Script - 메인 진입점
-import { fetchAllVotes, aggregateMetaTags } from './content/api.js';
-import { loadFromCache, saveToCache, restoreFromCache } from './content/cache.js';
-import { createFilterBar, insertFilterBar, updateFilterBarUI, updateFilterBarLoadButton, showFilterBarLoading } from './content/ui/filterBar.js';
-import { FilterManager } from './content/ui/filter.js';
-import { startThemeDetection } from './content/theme.js';
+import { fetchContributionStats } from './content/api.js';
+import { createFilterBar } from './content/ui/filterBar.js';
 import { exportAsJSON, exportAsCSV } from '@/utils/export.js';
 import './content/content.css';
+
+const CONTRIBUTIONS_ROUTE = /^\/(?:(?<locale>[a-z]{2}(?:-[a-z0-9]+)*)\/)?u\/(?<handle>[^/]+)\/contributions\/?$/i;
+const HEADING_SELECTOR = 'main > :not([aria-hidden="true"]) > :is(h1, h2)';
+const clock = new Intl.DateTimeFormat('ko-KR', { hour: '2-digit', minute: '2-digit' });
+
+function profileFromPath(pathname) {
+  const match = CONTRIBUTIONS_ROUTE.exec(pathname);
+  if (!match) return null;
+  try {
+    return { locale: match.groups.locale ?? '', handle: decodeURIComponent(match.groups.handle) };
+  } catch {
+    return null;
+  }
+}
+
+function hasLoginPrompt(nativeContent, path) {
+  const loginLinks = nativeContent?.querySelectorAll('a[href*="/login?"]') ?? [];
+  for (const link of loginLinks) {
+    const url = new URL(link.href);
+    const redirect = url.searchParams.get('redirect');
+    const target = redirect?.split(/[?#]/, 1)[0];
+    if (url.origin === location.origin && /\/login\/?$/.test(url.pathname) &&
+        (target === path || target === location.origin + path)) return true;
+  }
+  return false;
+}
 
 export default defineContentScript({
   matches: ['https://solved.ac/*'],
   runAt: 'document_idle',
   cssInjectionMode: 'manifest',
-  main() {
+  async main(ctx) {
+    const cache = new Map();
+    const observer = new MutationObserver(syncPage);
+    let enabled = (await browser.storage.local.get('enabled')).enabled !== false;
+    let panel;
 
-    /**
-     * 메인 앱 클래스
-     */
-    class SolvedTagsApp {
-      constructor() {
-        this.allVotes = [];
-        this.problemTags = new Map();
-        this.filterManager = new FilterManager();
-        this.currentHandle = null;
-        this.isDataLoaded = false;
-        this.isInitializing = false; // 중복 init() 방지
-      }
+    function unmount() {
+      observer.disconnect();
+      panel?.request?.abort();
+      panel?.ui.destroy();
+      panel?.ui.root.remove();
+      panel = undefined;
+    }
 
-      /**
-       * URL에서 사용자 핸들 추출
-       */
-      extractHandle() {
-        const match = window.location.pathname.match(/\/profile\/([^/]+)\/votes/);
-        return match ? match[1] : null;
-      }
+    function updateRoute() {
+      const path = location.pathname;
+      if (enabled && panel?.path === path) return;
+      unmount();
+      if (/\/(?:login|logout)\/?$/.test(path)) cache.clear();
+      const profile = enabled && profileFromPath(path);
+      if (!profile) return;
 
-      /**
-       * 현재 URL이 votes 페이지인지 확인
-       */
-      isVotesPage() {
-        return /\/profile\/[^/]+\/votes/.test(window.location.pathname);
-      }
-
-      /**
-       * 패널 제거
-       */
-      cleanup() {
-        const bar = document.getElementById('solved-tags-bar');
-        if (bar) bar.remove();
-        this.filterManager.restoreOriginalPage();
-        this.filterManager.clear();
-        this.isDataLoaded = false;
-        this.currentHandle = null;
-        this.isInitializing = false;
-      }
-
-      /**
-       * 상태 감시 — votes 페이지 여부와 필터바 존재 여부를 주기적으로 확인
-       */
-      startWatcher() {
-        setInterval(() => {
-          const onVotesPage = this.isVotesPage();
-          const barExists = !!document.getElementById('solved-tags-bar');
-
-          if (onVotesPage && !barExists && !this.isInitializing) {
-            this.init();
-          } else if (!onVotesPage && barExists) {
-            this.cleanup();
+      const { handle, locale } = profile;
+      const titleLocale = locale || document.documentElement.lang;
+      const current = {
+        path, handle, titleLocale,
+        cacheKey: JSON.stringify([handle.toLowerCase(), titleLocale]),
+        ui: createFilterBar({
+          onLoad: () => load(current),
+          onExport: (format, problems) => {
+            const exportFile = format === 'csv' ? exportAsCSV : exportAsJSON;
+            exportFile(problems, handle);
           }
-        }, 1000);
+        })
+      };
+      panel = current;
+      syncPage();
+    }
+
+    function syncPage() {
+      if (!panel) return;
+      if (panel.path !== location.pathname) {
+        updateRoute();
+        return;
+      }
+      const heading = panel.heading?.isConnected ? panel.heading : document.querySelector(HEADING_SELECTOR);
+      if (!heading) {
+        if (panel.heading !== null) {
+          observer.disconnect();
+          observer.observe(document.body, { childList: true, subtree: true });
+          panel.heading = null;
+        }
+        return;
       }
 
-      /**
-       * 데이터 로드 (API 호출)
-       */
-      async loadData(forceRefresh = false) {
-        const handle = this.currentHandle;
-        if (!handle) return;
-
-        // 캐시 확인 (강제 갱신이 아닐 경우)
-        if (!forceRefresh) {
-          const cached = loadFromCache(handle);
-          if (cached) {
-            const restored = restoreFromCache(cached);
-            this.allVotes = restored.votes;
-            this.problemTags = restored.problemTags;
-            this.isDataLoaded = true;
-            this.updateUI();
-            updateFilterBarLoadButton(cached.timestamp);
-            return;
-          }
+      const { ui } = panel;
+      if (heading.nextElementSibling !== ui.root) heading.after(ui.root);
+      const native = ui.root.nextElementSibling;
+      if (panel.heading !== heading || panel.native !== native) {
+        observer.disconnect();
+        // Watch direct replacements along the route layout and login changes inside the native list.
+        // The extension's own result rows are outside the observed subtrees.
+        for (let ancestor = heading.parentElement; ancestor; ancestor = ancestor.parentElement) {
+          observer.observe(ancestor, { childList: true });
         }
-
-        showFilterBarLoading();
-
-        try {
-          this.allVotes = await fetchAllVotes(handle);
-          this.problemTags = aggregateMetaTags(this.allVotes);
-
-          // 캐시에 저장
-          saveToCache(handle, this.allVotes, this.problemTags);
-
-          this.isDataLoaded = true;
-          this.updateUI();
-          updateFilterBarLoadButton(Date.now());
-
-        } catch (error) {
-          console.error('[Solved Tags] 오류:', error);
-          const loadBtn = document.getElementById('solved-tags-load-btn');
-          if (loadBtn) {
-            loadBtn.disabled = false;
-            loadBtn.innerHTML = '📊 메타 태그 불러오기';
-          }
-          alert('데이터를 불러오는 중 오류가 발생했습니다.');
-        }
-      }
-
-      /**
-       * 필터 변경 처리
-       */
-      handleFilterChange(tagKey) {
-        if (!this.isDataLoaded) {
-          alert('데이터를 먼저 불러와주세요! 패널의 "데이터 불러오기" 버튼을 클릭하세요.');
-          return;
-        }
-
-        this.filterManager.toggle(tagKey);
-
-        if (this.filterManager.isEmpty()) {
-          this.filterManager.restoreOriginalPage();
-        } else {
-          this.filterManager.renderFilteredList(this.problemTags, () => this.handleClearFilters());
-        }
-        this.updateUI();
-      }
-
-      /**
-       * 필터 초기화 처리
-       */
-      handleClearFilters() {
-        this.filterManager.clear();
-        this.filterManager.restoreOriginalPage();
-        this.updateUI();
-      }
-
-      /**
-       * 정렬 기준 변경 처리
-       */
-      handleSortChange(sortOption) {
-        this.filterManager.setSortBy(sortOption);
-
-        // 필터가 활성화된 상태에서만 목록 다시 렌더링
-        if (!this.filterManager.isEmpty()) {
-          this.filterManager.renderFilteredList(this.problemTags, () => this.handleClearFilters());
-        }
-      }
-
-      /**
-       * 데이터 내보내기 처리
-       */
-      handleExport(format) {
-        if (!this.isDataLoaded || this.problemTags.size === 0) {
-          alert('내보낼 데이터가 없습니다. 먼저 데이터를 불러와주세요.');
-          return;
-        }
-        if (format === 'csv') {
-          exportAsCSV(this.problemTags, this.currentHandle);
-        } else {
-          exportAsJSON(this.problemTags, this.currentHandle);
-        }
-      }
-
-      /**
-       * UI 업데이트
-       */
-      updateUI() {
-        updateFilterBarUI({
-          isDataLoaded: this.isDataLoaded,
-          activeFilters: this.filterManager.activeFilters,
-          problemTags: this.problemTags,
-          filteredProblems: this.filterManager.getFilteredProblems(this.problemTags)
+        if (native) observer.observe(native, {
+          childList: true, subtree: true, attributes: true, attributeFilter: ['href']
         });
+        panel.heading = heading;
+        panel.native = native;
       }
 
-      /**
-       * 초기화
-       */
-      async init() {
-        if (this.isInitializing) return;
-        if (document.getElementById('solved-tags-bar')) return;
-
-        this.isInitializing = true;
-
-        this.currentHandle = this.extractHandle();
-        if (!this.currentHandle) {
-          this.isInitializing = false;
-          return;
-        }
-
-        const settings = await browser.storage.local.get(['enabled']);
-        if (settings.enabled === false) {
-          this.isInitializing = false;
-          return;
-        }
-
-        const filterBar = createFilterBar({
-          onLoadData: (forceRefresh) => this.loadData(forceRefresh),
-          onFilterChange: (tagKey) => this.handleFilterChange(tagKey),
-          onClearFilters: () => this.handleClearFilters(),
-          onSortChange: (sortOption) => this.handleSortChange(sortOption),
-          onExport: (format) => this.handleExport(format)
-        });
-
-        try {
-          await insertFilterBar(filterBar);
-        } catch {
-          // 삽입 실패 시 정리
-        }
-        this.isInitializing = false;
-
-        // SPA 페이지 이동 시 이전 페이지의 원본 콘텐츠를 초기화
-        this.filterManager.originalContent = null;
-        this.filterManager.isFilterMode = false;
-
-        // 테마 감지 시작
-        startThemeDetection();
-
-        // 캐시된 데이터 있으면 자동 로드
-        const cached = loadFromCache(this.currentHandle);
-        if (cached) {
-          const restored = restoreFromCache(cached);
-          this.allVotes = restored.votes;
-          this.problemTags = restored.problemTags;
-          this.isDataLoaded = true;
-          this.updateUI();
-          updateFilterBarLoadButton(cached.timestamp);
-
-          // 이전에 선택한 필터가 있으면 자동으로 다시 적용
-          if (!this.filterManager.isEmpty()) {
-            this.filterManager.renderFilteredList(this.problemTags, () => this.handleClearFilters());
-          }
-        }
+      const locked = hasLoginPrompt(native, panel.path);
+      if (locked === panel.locked) return;
+      panel.locked = locked;
+      if (locked) {
+        panel.request?.abort();
+        panel.request = undefined;
+        cache.clear();
+        ui.setData(null);
+        ui.setStatus('메타 태그를 보려면 solved.ac에 로그인해 주세요.', true);
+      } else {
+        const cached = cache.get(panel.cacheKey);
+        ui.setData(cached ?? null);
+        ui.setStatus(cached ? `조회 시각 ${clock.format(cached.timestamp)}` : '');
       }
     }
 
-    // 앱 시작
-    const app = new SolvedTagsApp();
+    async function load(current) {
+      if (panel !== current || current.locked || current.request || location.pathname !== current.path) return;
+      const request = new AbortController();
+      current.request = request;
+      current.ui.setStatus('기여 데이터를 불러오는 중…', true);
 
-    // SPA 네비게이션 전에 바 제거 (React DOM reconciliation 깨짐 방지)
-    // 같은 votes 페이지 내 이동(페이지네이션)에서는 바를 유지
-    const removeBarBeforeNavigation = (newUrl) => {
-      // 새 URL이 같은 votes 페이지이면 바를 제거하지 않음
-      if (newUrl) {
-        try {
-          const resolved = new URL(newUrl, window.location.origin);
-          if (/\/profile\/[^/]+\/votes/.test(resolved.pathname)) {
-            return;
+      try {
+        const stats = await fetchContributionStats(current.handle, current.titleLocale, request.signal, (done, total) => {
+          if (!request.signal.aborted && done < total) {
+            current.ui.setStatus(`기여 데이터를 불러오는 중… ${done} / ${total}페이지`, true);
           }
-        } catch {
-          // URL 파싱 실패 시 안전하게 바 제거
+        });
+        if (request.signal.aborted || location.pathname !== current.path) return;
+        const data = { ...stats, timestamp: Date.now() };
+        cache.set(current.cacheKey, data);
+        current.ui.setData(data);
+        current.ui.setStatus(`조회 시각 ${clock.format(data.timestamp)}`);
+      } catch (error) {
+        if (!request.signal.aborted && location.pathname === current.path) {
+          current.ui.setStatus(error.message || '기여 데이터를 불러오는 중 오류가 발생했습니다.');
         }
+      } finally {
+        // A failed page can leave other requests in the same batch in flight.
+        request.abort();
+        if (current.request === request) current.request = undefined;
       }
-      const bar = document.getElementById('solved-tags-bar');
-      if (bar) bar.remove();
-      // 필터 상태 초기화 (원본 콘텐츠가 stale해지므로)
-      app.filterManager.originalContent = null;
-      app.filterManager.isFilterMode = false;
+    }
+
+    if (window.navigation) {
+      ctx.addEventListener(window.navigation, 'currententrychange', updateRoute);
+    } else {
+      ctx.addEventListener(window, 'wxt:locationchange', updateRoute);
+    }
+    const onSettingsChanged = (changes, area) => {
+      if (area !== 'local' || !changes.enabled) return;
+      enabled = changes.enabled.newValue !== false;
+      updateRoute();
     };
-
-    const originalPushState = history.pushState;
-    history.pushState = function (...args) {
-      removeBarBeforeNavigation(args[2]);
-      return originalPushState.apply(this, args);
-    };
-
-    const originalReplaceState = history.replaceState;
-    history.replaceState = function (...args) {
-      removeBarBeforeNavigation(args[2]);
-      return originalReplaceState.apply(this, args);
-    };
-
-    window.addEventListener('popstate', removeBarBeforeNavigation);
-
-    // 1) 매 500ms마다 상태 체크
-    app.startWatcher();
-
-    // 2) storage 변경 감지 — 팝업에서 enabled 토글 시 즉시 반응
-    browser.storage.onChanged.addListener((changes) => {
-      if (changes.enabled) {
-        if (changes.enabled.newValue === true && app.isVotesPage()) {
-          app.init();
-        } else if (changes.enabled.newValue === false) {
-          app.cleanup();
-        }
-      }
+    browser.storage.onChanged.addListener(onSettingsChanged);
+    ctx.onInvalidated(() => {
+      browser.storage.onChanged.removeListener(onSettingsChanged);
+      unmount();
     });
-
-    if (app.isVotesPage()) {
-      app.init();
-    }
+    updateRoute();
   }
 });

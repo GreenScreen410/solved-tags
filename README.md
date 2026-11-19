@@ -21,14 +21,14 @@
 
 ## ✨ Features
 
-[solved.ac](https://solved.ac) 프로필의 **기여(votes)** 페이지에서 자신이 투표한 문제들의 메타 태그를 한눈에 확인할 수 있습니다.
+[solved.ac](https://solved.ac) 프로필의 **기여** 페이지에서 자신이 투표한 문제들의 메타 태그를 한눈에 확인할 수 있습니다.
 
 - **메타 태그 통계** - 7가지 메타 태그별 기여 개수 확인
-- **필터링** - 특정 메타 태그가 포함된 문제만 필터링
+- **필터링** - 선택한 메타 태그 중 하나라도 포함한 문제를 40개씩 표시
 - **정렬** - 기여 순서, 문제 번호, 난이도 순으로 정렬
 - **코멘트 표시** - 기여 시 작성한 코멘트 확인
-- **캐싱** - 로컬 스토리지에 데이터 캐싱 (수동 갱신 전까지 유지)
-- **다크 모드** - 시스템 설정에 따른 자동 다크 모드 지원
+- **캐싱** - 현재 탭에서 조회 결과를 재사용하고 수동으로 갱신
+- **다크 모드** - solved.ac의 현재 테마에 맞춰 표시
 - **CSV/JSON 내보내기** - 기여 데이터를 CSV 또는 JSON 형식으로 내보내기
 
 ### 지원하는 메타 태그
@@ -45,13 +45,15 @@
 
 ## 📦 Installation
 
+Chrome 111 이상 또는 Firefox 128 이상을 지원합니다.
+
 ### Chrome
 
 1. [Chrome Web Store](https://chromewebstore.google.com/detail/solvedtags/ofcomeknbplijbojjmhcpanandbpckek)에서 설치
 
 **또는 수동 설치:**
 
-1. [Releases](../../releases)에서 `solved-tags-chrome.zip` 다운로드
+1. [Chrome용 v1.4.0 ZIP](../../releases/download/v1.4.0/solved-tags-1.4.0-chrome.zip) 다운로드
 2. 압축 해제
 3. Chrome에서 `chrome://extensions` 접속
 4. 우측 상단 **개발자 모드** 활성화
@@ -64,7 +66,7 @@
 
 **또는 수동 설치:**
 
-1. [Releases](../../releases)에서 `solved-tags-firefox.zip` 다운로드
+1. [Firefox용 v1.4.0 ZIP](../../releases/download/v1.4.0/solved-tags-1.4.0-firefox.zip) 다운로드
 2. Firefox에서 `about:debugging#/runtime/this-firefox` 접속
 3. **임시 부가 기능 로드** 클릭
 4. zip 파일 또는 `manifest.json` 선택
@@ -73,14 +75,14 @@
 
 ## 🚀 Usage
 
-1. 확장 프로그램 아이콘 클릭
-2. **내 핸들** 입력 (solved.ac 핸들)
-3. 자신의 프로필 기여 페이지 방문: `https://solved.ac/profile/{핸들}/votes`
-4. **메타 태그 불러오기** 버튼 클릭
-5. 태그별 통계 확인 및 필터링!
+1. solved.ac에 로그인합니다.
+2. 프로필의 기여 페이지(`https://solved.ac/ko/u/{핸들}/contributions`)를 엽니다.
+3. 제목 아래의 **메타 태그 불러오기**를 클릭합니다.
+
+확장 프로그램은 현재 solved.ac 로그인 세션에서 볼 수 있는 기여만 조회합니다. 필터를 선택하면 해당 기여를 solved.ac의 기여 목록으로 표시합니다. 같은 문제에 여러 번 기여했다면 선택한 태그가 포함된 가장 최근 기여를 표시합니다.
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="Screenshot" width="600">
+  <img src="docs/screenshot.png" alt="solved.tags 1.4 메타 태그 필터와 통계 예시" width="600">
 </p>
 
 ---
@@ -115,9 +117,10 @@ npm run build:firefox
 npm run build:all
 
 # Zip 패키징
-npm run zip
-npm run zip:firefox
+npm run zip:all
 ```
+
+빌드와 ZIP은 `.output-v4/`에 생성됩니다. Chrome은 `.output-v4/chrome-mv3/`, Firefox는 `.output-v4/firefox-mv2/`를 사용합니다.
 
 ### 개발 모드
 
@@ -135,18 +138,15 @@ npm run dev:firefox
 solved-tags/
 ├── src/
 │   ├── entrypoints/
-│   │   ├── background.js      # 백그라운드 서비스 워커
 │   │   ├── content.js         # 컨텐츠 스크립트 진입점
+│   │   ├── native-rows.content.js # 필터 결과를 사이트의 기여 행으로 표시
 │   │   ├── content/
 │   │   │   ├── ui/
 │   │   │   │   ├── filterBar.js    # 필터 바 UI
 │   │   │   │   ├── filter.js       # 필터 로직
-│   │   │   │   ├── panel.js        # 플로팅 패널 UI
-│   │   │   │   └── problemList.js  # 문제 목록 렌더링
-│   │   │   ├── api.js         # solved.ac API 통신
-│   │   │   ├── cache.js       # 로컬 스토리지 캐싱
-│   │   │   ├── content.css    # 컨텐츠 스타일
-│   │   │   └── theme.js       # 테마 감지
+│   │   │   │   └── nativeResults.js # solved.ac 기여 목록 프레임
+│   │   │   ├── api.js         # solved.ac v4 API 통신
+│   │   │   └── content.css    # 컨텐츠 스타일
 │   │   └── popup/
 │   │       ├── index.html     # 팝업 UI
 │   │       ├── style.css      # 팝업 스타일
@@ -154,7 +154,7 @@ solved-tags/
 │   └── utils/
 │       └── constants.js       # 공유 상수 (메타 태그 등)
 ├── public/                    # 정적 에셋 (아이콘 등)
-├── .output/                   # 빌드 출력 (WXT)
+├── .output-v4/                # 빌드 출력 (WXT)
 ├── wxt.config.ts              # WXT 설정 (매니페스트 포함)
 └── package.json
 ```
