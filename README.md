@@ -53,7 +53,7 @@ Chrome 111 이상 또는 Firefox 128 이상을 지원합니다.
 
 **ZIP으로 설치하기**
 
-1. [Chrome용 v1.4.2 ZIP](https://github.com/GreenScreen410/solved-tags/releases/download/v1.4.2/solved-tags-1.4.2-chrome.zip) 다운로드
+1. [Chrome용 v1.4.3 ZIP](https://github.com/GreenScreen410/solved-tags/releases/download/v1.4.3/solved-tags-1.4.3-chrome.zip) 다운로드
 2. 압축 해제
 3. Chrome에서 `chrome://extensions` 접속
 4. 우측 상단 **개발자 모드** 활성화
@@ -66,20 +66,18 @@ Chrome 111 이상 또는 Firefox 128 이상을 지원합니다.
 
 **ZIP으로 설치하기**
 
-1. [Firefox용 v1.4.2 ZIP](https://github.com/GreenScreen410/solved-tags/releases/download/v1.4.2/solved-tags-1.4.2-firefox.zip) 다운로드
+1. [Firefox용 v1.4.3 ZIP](https://github.com/GreenScreen410/solved-tags/releases/download/v1.4.3/solved-tags-1.4.3-firefox.zip) 다운로드
 2. Firefox에서 `about:debugging#/runtime/this-firefox` 접속
 3. **임시 부가 기능 로드** 클릭
 4. 다운로드한 ZIP 파일 선택
-
-확장을 설치하거나 업데이트한 뒤 이미 열려 있는 solved.ac 기여 탭을 새로고침하세요.
 
 ---
 
 ## 🚀 Usage
 
 1. solved.ac에 로그인합니다.
-2. 프로필의 기여 페이지(`https://solved.ac/ko/u/{핸들}/contributions`)를 엽니다.
-3. **전체 기여**, **최신순** 옆의 **메타 태그**를 열어 원하는 태그를 선택합니다.
+2. 프로필의 기여 페이지(`https://solved.ac/ko/u/{핸들}/contributions`)를 열면 **최신순** 옆에 **메타 태그**가 자동으로 나타납니다.
+3. **메타 태그**를 열어 태그별 문제 수를 확인하고 원하는 태그를 선택합니다.
 4. **전체 기여**, **최신순**, **의견 있는 기여만**을 바꿔 보세요. 선택한 메타 태그는 유지되고 새 조건에 맞춰 개수와 결과가 갱신됩니다.
 5. 메타 태그 메뉴의 **필터 초기화**를 누르면 현재 기여 조건의 원래 목록으로 돌아갑니다.
 

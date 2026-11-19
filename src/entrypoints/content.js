@@ -41,16 +41,32 @@ function findToolbar(stack) {
   return { controls, toolbar, template };
 }
 
+// Firefox can discard the old extension context during an update before its
+// cleanup runs. The page still contains its toolbar, open menu and preview.
+function removePreviousUI() {
+  const previous = document.querySelectorAll('.solved-tags-panel, [data-solved-tags-trigger], body > #solved-tags-options.solved-tags-menu');
+  if (!previous.length) return;
+  for (const node of previous) node.remove();
+  for (const row of document.querySelectorAll('[data-solved-tags-preview-row]')) {
+    row.style.order = row.getAttribute('data-solved-tags-preview-row');
+    row.removeAttribute('data-solved-tags-preview-row');
+  }
+  for (const part of ['stack', 'toolbar', 'controls', 'preview', 'preview-list']) {
+    const attribute = 'data-solved-tags-' + part;
+    for (const el of document.querySelectorAll(`[${attribute}]`)) el.removeAttribute(attribute);
+  }
+}
+
 export default defineContentScript({
   matches: ['https://solved.ac/*'],
   runAt: 'document_idle',
   cssInjectionMode: 'manifest',
-  async main(ctx) {
+  main(ctx) {
+    removePreviousUI();
     const cache = new Map();
     const observer = new MutationObserver(changes => {
       if (panel && changes.some(({ target }) => !panel.ui.root.contains(target) && !panel.ui.trigger.contains(target))) syncPage();
     });
-    let enabled = (await browser.storage.local.get('enabled')).enabled !== false;
     let panel;
 
     function detachToolbar() {
@@ -74,13 +90,13 @@ export default defineContentScript({
 
     function updateRoute() {
       const path = location.pathname;
-      if (enabled && panel?.path === path) {
+      if (panel?.path === path) {
         syncPage();
         return;
       }
       unmount();
       if (/\/(?:login|logout)\/?$/.test(path)) cache.clear();
-      const profile = enabled && profileFromPath(path);
+      const profile = profileFromPath(path);
       if (!profile) return;
 
       const { handle, locale } = profile;
@@ -202,16 +218,7 @@ export default defineContentScript({
     } else {
       ctx.addEventListener(window, 'wxt:locationchange', updateRoute);
     }
-    const onSettingsChanged = (changes, area) => {
-      if (area !== 'local' || !changes.enabled) return;
-      enabled = changes.enabled.newValue !== false;
-      updateRoute();
-    };
-    browser.storage.onChanged.addListener(onSettingsChanged);
-    ctx.onInvalidated(() => {
-      browser.storage.onChanged.removeListener(onSettingsChanged);
-      unmount();
-    });
+    ctx.onInvalidated(unmount);
     updateRoute();
   }
 });

@@ -5,22 +5,14 @@ export default defineConfig({
   outDir: '.output-v4',
   zip: { excludeSources: ['_backup/**'] },
   manifest: ({ browser }) => ({
-    ...(browser === 'chrome' && { minimum_chrome_version: '111' }),
+    ...(browser === 'chrome' && { minimum_chrome_version: '111', permissions: ['scripting'] }),
     name: 'solved.tags',
     description: 'solved.ac 기여 페이지에서 메타 태그를 표시합니다.',
-    permissions: ['storage'],
     host_permissions: ['https://solved.ac/*'],
     icons: {
       16: 'icon16.png',
       48: 'icon48.png',
       128: 'icon128.png',
-    },
-    action: {
-      default_icon: {
-        16: 'icon16.png',
-        48: 'icon48.png',
-        128: 'icon128.png',
-      },
     },
     browser_specific_settings: {
       gecko: {

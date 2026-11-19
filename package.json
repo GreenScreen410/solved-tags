@@ -1,6 +1,6 @@
 {
   "name": "solved-tags",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "solved.ac 기여 페이지에서 메타 태그를 표시합니다.",
   "type": "module",
   "scripts": {

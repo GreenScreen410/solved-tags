@@ -31,7 +31,7 @@ export function showPagePreview(native, problemIds) {
     const marked = new Map();
     function mark(element, order) {
       marked.set(element, element.style.order);
-      element.setAttribute('data-solved-tags-preview-row', '');
+      element.setAttribute('data-solved-tags-preview-row', element.style.order);
       element.style.order = String(order);
     }
     visible.forEach((row, index) => {
