@@ -49,7 +49,7 @@ export function createFilterBar({ onLoad, onExport }) {
         </div>
       </div>
     </div>
-    <div class="solved-tags-results" aria-label="필터링한 기여 문제" hidden></div>
+    <div class="solved-tags-results" aria-label="필터링한 기여 문제"></div>
     <button type="button" data-more hidden></button>
   `;
 
@@ -69,23 +69,24 @@ export function createFilterBar({ onLoad, onExport }) {
   let data = null;
   let taggedProblems = [];
   let matches = [];
-  let shown = 0;
+  let visibleIds = [];
 
   function appendResults(moveFocus = false) {
-    const end = Math.min(shown + RESULT_BATCH_SIZE, matches.length);
-    const items = [];
-    for (; shown < end; shown++) {
-      for (const [key, vote] of matches[shown].votesByMetaTag) {
+    const end = Math.min(visibleIds.length + RESULT_BATCH_SIZE, matches.length);
+    for (let index = visibleIds.length; index < end; index++) {
+      for (const [key, vote] of matches[index].votesByMetaTag) {
         if (activeTags.has(key)) {
-          items.push(vote);
+          visibleIds.push(vote.voteId ?? vote.vote.id);
           break;
         }
       }
     }
-    if (items.length) nativeResults.append(items, moveFocus);
-    more.hidden = shown >= matches.length;
+    const previewIds = moveFocus ? [] : matches.slice(0, end).map(problem => problem.contributionCount === 1
+      ? encodeURIComponent(`${problem.problemId}${problem.subId ?? ''}`) : null);
+    nativeResults.show(visibleIds, previewIds, moveFocus);
+    more.hidden = end >= matches.length;
     if (!more.hidden) {
-      const nextCount = Math.min(RESULT_BATCH_SIZE, matches.length - shown);
+      const nextCount = Math.min(RESULT_BATCH_SIZE, matches.length - end);
       more.textContent = `${nextCount}개 더 보기`;
     }
   }
@@ -93,12 +94,10 @@ export function createFilterBar({ onLoad, onExport }) {
   function updateResults() {
     const filtered = !!data && activeTags.size > 0;
     matches = filtered ? filterProblems(taggedProblems, activeTags, sort.value) : [];
-    shown = 0;
+    visibleIds = [];
     root.toggleAttribute('data-filtered', filtered);
     tools.hidden = matchSummary.hidden = !filtered;
-    results.hidden = matches.length === 0;
     matchSummary.textContent = filtered ? `필터 결과 ${numbers.format(matches.length)}개` : '';
-    nativeResults.clear();
     appendResults();
   }
 
@@ -140,22 +139,31 @@ export function createFilterBar({ onLoad, onExport }) {
   return {
     root,
     destroy: nativeResults.clear,
+    prepare: nativeResults.prepare,
+    cancelPrepare() {
+      if (!data) nativeResults.clear();
+    },
     setData(next) {
       data = next;
       controls.hidden = !data;
       root.toggleAttribute('data-loaded', !!data);
       taggedProblems = [];
       const counts = new Map();
+      const votes = new Map();
       if (data) {
         for (const problem of data.problems.values()) {
           if (!problem.votesByMetaTag.size) continue;
           taggedProblems.push(problem);
-          for (const key of problem.votesByMetaTag.keys()) counts.set(key, (counts.get(key) ?? 0) + 1);
+          for (const [key, vote] of problem.votesByMetaTag) {
+            counts.set(key, (counts.get(key) ?? 0) + 1);
+            votes.set(vote.voteId ?? vote.vote.id, vote);
+          }
         }
       } else {
         activeTags.clear();
       }
 
+      nativeResults.setItems([...votes.values()]);
       for (const [key, { button, count }] of tagButtons) {
         button.setAttribute('aria-pressed', String(activeTags.has(key)));
         count.textContent = numbers.format(counts.get(key) ?? 0);

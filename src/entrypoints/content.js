@@ -125,6 +125,7 @@ export default defineContentScript({
       if (panel !== current || current.locked || current.request || location.pathname !== current.path) return;
       const request = new AbortController();
       current.request = request;
+      current.ui.prepare();
       current.ui.setStatus('기여 데이터를 불러오는 중…', true);
 
       try {
@@ -140,6 +141,7 @@ export default defineContentScript({
         current.ui.setStatus(`조회 시각 ${clock.format(data.timestamp)}`);
       } catch (error) {
         if (!request.signal.aborted && location.pathname === current.path) {
+          current.ui.cancelPrepare();
           current.ui.setStatus(error.message || '기여 데이터를 불러오는 중 오류가 발생했습니다.');
         }
       } finally {

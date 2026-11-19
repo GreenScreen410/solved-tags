@@ -70,6 +70,7 @@ function addContributions(problems, items, locale) {
       entry = {
         problemId,
         subId,
+        contributionCount: 0,
         title: title?.title ?? '',
         level,
         voteLevel: vote.level,
@@ -80,6 +81,7 @@ function addContributions(problems, items, locale) {
       problems.set(key, entry);
     }
 
+    entry.contributionCount++;
     for (const { tag, legacyKey } of vote.tags) {
       const key = tag?.key ?? legacyKey;
       const metaKey = Object.hasOwn(LEGACY_META_TAGS, key) ? LEGACY_META_TAGS[key] : key;

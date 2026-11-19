@@ -23,7 +23,9 @@
 }
 
 .solved-tags-panel [hidden],
-.solved-tags-panel[data-filtered] + div { display: none !important; }
+.solved-tags-panel[data-filtered] + div:not([data-solved-tags-preview]),
+[data-solved-tags-preview] > :not([data-solved-tags-preview-list]),
+[data-solved-tags-preview-list] > :not([data-solved-tags-preview-row]) { display: none !important; }
 
 .solved-tags-panel :is(h3, p, ul) { margin: 0; }
 
@@ -223,7 +225,7 @@
   appearance: auto;
 }
 
-.solved-tags-results { margin-top: .75rem; }
+.solved-tags-results[data-active] { margin-top: .75rem; }
 .solved-tags-results iframe { display: block; width: 100%; border: 0; }
 .solved-tags-results [role="status"] { padding-block: .75rem; color: var(--st-muted); }
 .solved-tags-results button { margin-inline-start: .5rem; }

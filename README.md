@@ -53,7 +53,7 @@ Chrome 111 이상 또는 Firefox 128 이상을 지원합니다.
 
 **또는 수동 설치:**
 
-1. [Chrome용 v1.4.0 ZIP](../../releases/download/v1.4.0/solved-tags-1.4.0-chrome.zip) 다운로드
+1. [Chrome용 v1.4.1 ZIP](../../releases/download/v1.4.1/solved-tags-1.4.1-chrome.zip) 다운로드
 2. 압축 해제
 3. Chrome에서 `chrome://extensions` 접속
 4. 우측 상단 **개발자 모드** 활성화
@@ -66,7 +66,7 @@ Chrome 111 이상 또는 Firefox 128 이상을 지원합니다.
 
 **또는 수동 설치:**
 
-1. [Firefox용 v1.4.0 ZIP](../../releases/download/v1.4.0/solved-tags-1.4.0-firefox.zip) 다운로드
+1. [Firefox용 v1.4.1 ZIP](../../releases/download/v1.4.1/solved-tags-1.4.1-firefox.zip) 다운로드
 2. Firefox에서 `about:debugging#/runtime/this-firefox` 접속
 3. **임시 부가 기능 로드** 클릭
 4. zip 파일 또는 `manifest.json` 선택
@@ -79,7 +79,7 @@ Chrome 111 이상 또는 Firefox 128 이상을 지원합니다.
 2. 프로필의 기여 페이지(`https://solved.ac/ko/u/{핸들}/contributions`)를 엽니다.
 3. 제목 아래의 **메타 태그 불러오기**를 클릭합니다.
 
-확장 프로그램은 현재 solved.ac 로그인 세션에서 볼 수 있는 기여만 조회합니다. 필터를 선택하면 해당 기여를 solved.ac의 기여 목록으로 표시합니다. 같은 문제에 여러 번 기여했다면 선택한 태그가 포함된 가장 최근 기여를 표시합니다.
+확장 프로그램은 현재 solved.ac 로그인 세션에서 볼 수 있는 기여만 조회합니다. 필터를 선택하면 현재 페이지에서 확인할 수 있는 일치 항목을 먼저 표시하고, 나머지 기여 행을 같은 목록에 채웁니다. 같은 문제에 여러 번 기여했다면 선택한 태그가 포함된 가장 최근 기여를 표시합니다.
 
 <p align="center">
   <img src="docs/screenshot.png" alt="solved.tags 1.4 메타 태그 필터와 통계 예시" width="600">
